@@ -11,6 +11,18 @@ A Claude Code plugin dedicated to motion design. Pure Python (standard library) 
 > "I want this animation on my site." — drop the clip, run `/motiscope:analyze`,
 > then `/motiscope:recreate gsap`.
 
+## Demo
+
+![motiscope example](docs/example.gif)
+
+*The kind of motion motiscope reads and rebuilds — here, a staggered card entrance.
+Feed it a screen recording of an animation you like and it recreates the timing,
+easing, and stagger as code.*
+
+<!-- TODO: swap in a screen recording of /motiscope:analyze → /motiscope:recreate in action -->
+
+New here? See **[QUICKSTART.md](QUICKSTART.md)**.
+
 ## How it works
 
 motiscope splits the problem into two artifacts with very different cost:
@@ -31,13 +43,11 @@ result is a target-agnostic **animation spec** that `recreate` renders into code
 
 ```
 /plugin marketplace add github:KumarSashank/motiscope
-/plugin install motiscope
+/plugin install motiscope@motiscope
 ```
 
 Requires `ffmpeg` + `ffprobe`. Run `/motiscope:doctor` to check and (with your
 consent) install them (`brew install ffmpeg` on macOS).
-
-> Update the marketplace repo URL above to wherever you host this plugin.
 
 ## Usage
 
