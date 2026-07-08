@@ -1,0 +1,38 @@
+# motiscope working artifacts (per-video analysis output)
+.motiscope/
+
+# drop folder for source recordings — never commit user videos
+animations/
+
+# generated recreation output
+motiscope-output/
+
+# source video files, wherever they land
+*.mp4
+*.mov
+*.webm
+*.mkv
+*.m4v
+*.avi
+*.flv
+*.wmv
+
+# secrets — API keys live here, never commit them
+.env
+*.env
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# test fixtures are generated on demand by tests/make_test_clip.sh
+tests/*.mp4

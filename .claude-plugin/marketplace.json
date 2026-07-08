@@ -1,0 +1,23 @@
+{
+  "name": "motiscope",
+  "metadata": {
+    "description": "A Claude Code plugin dedicated to motion design. Turn a screen recording of an animation into working web animation code."
+  },
+  "owner": {
+    "name": "Kumar Sashank Ghanta",
+    "email": "kumar@eonverse.in"
+  },
+  "plugins": [
+    {
+      "name": "motiscope",
+      "description": "Analyze a screen recording of an animation and recreate it as GSAP / CSS / Framer Motion / Lottie code.",
+      "author": {
+        "name": "Kumar Sashank Ghanta"
+      },
+      "source": "./",
+      "category": "productivity",
+      "keywords": ["animation", "motion-design", "gsap", "css", "framer-motion", "lottie"],
+      "homepage": "https://github.com/KumarSashank/motiscope"
+    }
+  ]
+}

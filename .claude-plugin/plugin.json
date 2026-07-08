@@ -1,0 +1,24 @@
+{
+  "name": "motiscope",
+  "version": "0.1.0",
+  "description": "Recreate any web animation from a screen recording. Drop a video of an animation you like, motiscope extracts an animation-tuned motion analysis + keyframes, and Claude rebuilds it as GSAP, CSS, Framer Motion, or Lottie code.",
+  "author": {
+    "name": "Kumar Sashank Ghanta",
+    "email": "kumar@eonverse.in"
+  },
+  "homepage": "https://github.com/KumarSashank/motiscope",
+  "repository": "https://github.com/KumarSashank/motiscope",
+  "license": "MIT",
+  "keywords": [
+    "animation",
+    "motion-design",
+    "gsap",
+    "css",
+    "framer-motion",
+    "lottie",
+    "ffmpeg",
+    "frames",
+    "easing",
+    "vision"
+  ]
+}
