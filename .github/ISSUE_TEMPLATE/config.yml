@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "🎬 Show & tell (Discussions)"
+    url: https://github.com/KumarSashank/motiscope/discussions
+    about: Share your builds and see what others made — the community feed.
+  - name: "💬 Questions & ideas"
+    url: https://github.com/KumarSashank/motiscope/discussions
+    about: Ask how to recreate a specific animation, or propose an idea.

@@ -1,0 +1,66 @@
+name: "🎬 Share your build"
+description: "Show an animation you recreated with motiscope (for the gallery / Show & tell)."
+title: "[Build] "
+labels: ["showcase"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing! **Transparency is the whole point** — please include the
+        real source recording, motiscope's raw analysis, and your result, so others
+        can learn the workflow.
+  - type: input
+    id: source
+    attributes:
+      label: Source animation
+      description: Link or drag-and-drop the screen recording / GIF you fed motiscope. Use content you have the rights to.
+    validations:
+      required: true
+  - type: dropdown
+    id: target
+    attributes:
+      label: Recreated with
+      options:
+        - GSAP
+        - CSS / Web Animations
+        - Framer Motion
+        - Lottie / SVG
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: motion
+    attributes:
+      label: Motion type
+      options:
+        - Entrance / exit
+        - Stagger sequence
+        - Loader / loop
+        - Scroll-driven
+        - Hover / interaction
+        - Text effect
+        - SVG draw
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Your result
+      description: Link the live result / CodePen / repo, and drag-and-drop a recording or screenshot.
+    validations:
+      required: true
+  - type: textarea
+    id: transparency
+    attributes:
+      label: What matched / what you tuned
+      description: What did motiscope get right out of the box, and what did you adjust? This honesty is what helps others.
+    validations:
+      required: true
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Rights
+      options:
+        - label: I have the rights to share this source animation (my own work, or licensed / permitted).
+          required: true
