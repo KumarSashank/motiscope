@@ -42,6 +42,7 @@ ROOT="${CLAUDE_PLUGIN_ROOT:-}"
 Then `Read` the target guide and the easing map:
 - `Read "$REFS/easing-map.md"` — maps each neutral ease token to a concrete value in every target.
 - `Read "$REFS/targets/<target>.md"` — the rendering template for that target.
+- `Read "$REFS/measurement-traps.md"` — **if you are deriving any number yourself** (a velocity, a parallax ratio, a period) rather than reading it from `report.md`.
 
 ## Step 3 — generate the code
 
@@ -64,6 +65,10 @@ Your job is to feed those skills the exact inputs from the spec; theirs is to pr
 For **css**, **framer**, **lottie**, follow the corresponding `references/targets/<target>.md` template.
 
 Always include a `prefers-reduced-motion: reduce` guard that drops the element(s) into their final state.
+
+**If the spec is `scroll_driven`:** bind the motion to scroll position, not to a timer. A layer with parallax factor `f` translates by `scroll x (1 - f)`; at `f = 0` it is pinned, at `f = 1` it rides the page. A time-driven object inside a scroll-driven scene (a train, a marquee) can be bound to scroll too — derive its constant from the recorded *ratio*, and say in your summary that the binding is a design decision rather than something the source did.
+
+**Verify in the substrate, not in your own render.** Re-measuring pixels of your own output is a second chance to be wrong the same way. Ask the runtime what it actually resolved — `getBoundingClientRect`, `getComputedStyle`, `getBBox`, `DOMMatrix` — and check the numbers against the spec. A layer's on-screen speed relative to the page *is* its parallax factor; that is a proof, a screenshot is not.
 
 ## Step 4 — asset check (consent flow)
 

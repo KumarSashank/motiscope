@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the parallax recreation — traced terrain, measured layer speeds, a moving train.
 
-    python3 docs/examples/parallax/generate.py > docs/examples/parallax/index.html
+    python3 docs/examples/parallax/generate.py > docs/examples/parallax/recreation.html
 
 MEASURED from parallax.mov (1400x804, 60fps, 2.25s):
 
@@ -31,8 +31,10 @@ MEASURED from parallax.mov (1400x804, 60fps, 2.25s):
       pull a first-occurrence ridge upward, so the terrain is the upper quantile of the
       raw trace, not its median.
 
-CHOSEN, not measured: the sky is pinned (0.00) and the gold hills set to 0.30, both inside
-the unrecoverable range. Binding the train to scroll is a deliberate departure from the source
+CHOSEN, not measured: the sky and the far hills share one factor (0.30), inside the
+unrecoverable range -- they are a single pale mask and were never separable. Parallax travel is clamped to --pmax (240px): the traced ridges sit
+close together, so at full travel the near hills climb over the far ones and invert the depth
+order. Within the clamp the factors are exactly the measured ones. Binding the train to scroll is a deliberate departure from the source
 (there it runs on a clock); the 3.58 ratio is measured, the binding is a design decision.
 The ground line is derived from the purple ridge -- in the source it is almost entirely
 hidden behind foreground trees. Palette: a warm sunset became a cool dawn.
@@ -54,7 +56,10 @@ RAIL = "#F2603C"
 ACC1, ACC2 = "#FFB347", "#F2603C"
 TRAIN_ROOF, TRAIN_WIN, TRAIN_BODY = "#FFFFFF", "#12253A", "#FBE3B8"
 
-F_SKY, F_GOLD, F_ORNG, F_CRIM, F_NAVY, F_INK = 0.00, 0.30, 0.72, 0.86, 0.97, 1.00
+# The sky and the far hills are the same pale mask -- the measurement could never separate
+# them (estimates -0.03..0.63). Pinning the sky at 0.00 while the far hills climbed at 0.30
+# meant the hills ate the sky band and left a hard edge. They are one backdrop plane.
+F_SKY, F_GOLD, F_ORNG, F_CRIM, F_NAVY, F_INK = 0.30, 0.30, 0.72, 0.86, 0.97, 1.00
 
 DECK_Y, DECK_T = 498, 36
 PIER_PITCH, ARCH_W = 194, 180
@@ -219,7 +224,7 @@ HTML = f'''<!doctype html>
 <meta property="og:type" content="website">
 <meta property="og:title" content="Beyond Limits — a parallax landscape, recreated with motiscope">
 <meta property="og:description" content="Six depth layers and a train. The ridgelines are traced from the recording and the layer speeds are measured. The sky, honestly, is not recoverable.">
-<meta property="og:url" content="https://kumarsashank.github.io/motiscope/examples/parallax/">
+<meta property="og:url" content="https://kumarsashank.github.io/motiscope/examples/parallax/recreation.html">
 <meta property="og:image" content="https://kumarsashank.github.io/motiscope/og/parallax.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -230,9 +235,14 @@ HTML = f'''<!doctype html>
 <meta name="twitter:description" content="Traced terrain, measured layer speeds, and a train at a measured 1500 px/s.">
 <meta name="twitter:image" content="https://kumarsashank.github.io/motiscope/og/parallax.png">
 <meta name="twitter:image:alt" content="A layered dawn landscape: hills, a viaduct with a train crossing it, and dark foreground trees.">
-<link rel="canonical" href="https://kumarsashank.github.io/motiscope/examples/parallax/">
+<link rel="canonical" href="https://kumarsashank.github.io/motiscope/examples/parallax/recreation.html">
 <style>
-  :root {{ --ink:{INK}; --paper:#EAF7F1; --acc1:{ACC1}; --s:0px; }}
+  :root {{ --ink:{INK}; --paper:#EAF7F1; --acc1:{ACC1}; --s:0px;
+           /* Parallax travel is clamped. With the measured factors the near ridges climb
+              faster than the far ones, and past ~326px of scroll the deep hills overtake
+              the far hills -- layers swap depth and the sky is sliced away. Below --pmax
+              the factors are exact; above it the hero exits rigidly. */
+           --pmax:240px; }}
   * {{ box-sizing:border-box; margin:0; }}
   html {{ scroll-behavior:smooth; }}
   body {{ background:var(--ink); color:var(--paper); overflow-x:hidden;
@@ -240,7 +250,8 @@ HTML = f'''<!doctype html>
 
   .hero {{ position:relative; height:100vh; min-height:560px; overflow:hidden; }}
   .ly {{ position:absolute; inset:0; width:100%; height:100%; display:block;
-         transform:translate3d(0, calc(var(--s) * (1 - var(--f))), 0); will-change:transform; }}
+         transform:translate3d(0, calc(min(var(--s), var(--pmax)) * (1 - var(--f))), 0);
+         will-change:transform; }}
 
   /* The train is bound to the scroll, not to a clock.
      In the recording the train ran at {TRAIN_PXS:.0f} px/s while the page scrolled at

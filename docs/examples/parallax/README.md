@@ -74,9 +74,27 @@ identical step counts, run at quarter and half resolution:
 
 **The backdrop is not recoverable**, and the reason is honest rather than mysterious: the sky
 is a smooth gradient, so its colour mask isn't stable between frames. Estimates ranged from
-−0.03 to 0.63. Any single number quoted for it would be invented. In the recreation the sky
-is pinned (`0.00`) and the far hills set to `0.30` — **design choices inside the uncertainty**,
-not measurements.
+−0.03 to 0.63. Any single number quoted for it would be invented.
+
+In the recreation the **sky and the far hills share one factor (`0.30`)** — a design choice
+inside the uncertainty. They are the same pale mask, and the measurement could never separate
+them. Pinning the sky at `0.00` while the far hills climbed at `0.30` was the first attempt,
+and it was wrong: the hills ate the sky band and left a hard edge across the top of the hero.
+One backdrop plane is both more coherent and what the pixels actually support.
+
+### Parallax travel is clamped
+
+The traced ridges sit close together — the tightest adjacent pair is only 28px apart. At full
+travel the near hills climb over the far ones and the **depth order inverts**: past ~326px of
+scroll the deep hills overtake the far hills and reach the top of the hero.
+
+```css
+.ly { transform: translate3d(0, calc(min(var(--s), var(--pmax)) * (1 - var(--f))), 0); }
+```
+
+Below `--pmax` (240px) the factors are **exactly** the measured ones. Above it the hero exits
+rigidly, with the layer order preserved. This is a property of the artwork's composition, not
+of the measurement: the source's hero scrolls *into* view, so its crossing region is off-screen.
 
 ### The viaduct
 
@@ -133,13 +151,13 @@ Probed in a real browser: scroll to 300px, then read each layer's on-screen posi
 layer's on-screen speed relative to the page **is** its parallax factor.
 
 ```
-scrollY=300                     train: animation-name = none (it is pure geometry)
-set_f=0.00  implied_f=0.000     s=0    translateX = -60.0
-set_f=0.30  implied_f=0.300     s=100  translateX = 298.0     ( -60 + 3.58*100 )
-set_f=0.72  implied_f=0.720     s=300  translateX = 1014.0    ( -60 + 3.58*300 )
-set_f=0.86  implied_f=0.860     s=589  translateX = 2048.6    (fully across)
+scrollY=200 (inside --pmax)     train: animation-name = none (it is pure geometry)
+set_f=0.30  implied_f=0.300     train translateX = 656.0  (expect -60 + 3.58*200 = 656.0)
+set_f=0.30  implied_f=0.300
+set_f=0.72  implied_f=0.720     scrolling 300 -> 100: dx = -716.0  (the train reverses)
+set_f=0.86  implied_f=0.860
 set_f=0.97  implied_f=0.970
-set_f=1.00  implied_f=1.000     scrolling 300 -> 100: dx = -716.0  (it reverses)
+set_f=1.00  implied_f=1.000
 ```
 
 ## How it's built
@@ -177,7 +195,8 @@ depth order are the source's.
 
 ## What's still approximate
 
-- **Sky and far-hill speeds are chosen**, as above.
+- **The sky and far hills share a chosen factor** (`0.30`), as above — they were never separable.
+- **Parallax travel is clamped** at 240px of scroll to stop the traced ridges from inverting.
 - **Binding the train to scroll is a departure from the source**, where it runs on a clock.
   The 3.58 ratio it uses is measured; the binding is a choice.
 - **The ground line is derived**, not traced.

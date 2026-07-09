@@ -6,6 +6,26 @@ All notable changes to motiscope are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **`references/measurement-traps.md`** — eight traps, each hit while building the examples in
+  this repo, each of which returned a clean number with a tidy residual. The analyze skill now
+  tells the model that curated frames are **evidence, not an inventory** (a train was missed
+  exactly that way), that an **occluded feature reports a confident wrong constant** (the same
+  train's nose reads 16 px/s instead of 1500), that **two estimators or you have none**, and
+  that **scroll-driven is not time-driven**. The recreate skill now says to **verify in the
+  substrate** — ask the browser what it resolved — rather than re-measuring your own render.
+- **Case study page for the parallax example** (`docs/examples/parallax/index.html`), in the site
+  theme: the live recreation in an iframe, the 29 curated keyframes (which contain no train),
+  the scroll-state strip, the failed-estimator table, the traced-terrain reasoning, and the
+  browser probe. The recreation moved to `recreation.html`.
+
+### Fixed
+- **The parallax sliced its own sky.** Two causes, both real. (1) The sky was pinned at `0.00`
+  while the far hills climbed at `0.30`, so the hills ate the sky band — but the two are a single
+  pale mask that the measurement could never separate, so they now share one factor. (2) The traced
+  ridges sit close together (tightest adjacent pair: 28px), so at full travel the near hills climb
+  **over** the far ones and the depth order inverts past ~326px of scroll. Parallax travel is now
+  clamped to `min(var(--s), 240px)`; below it the factors are exactly the measured ones, above it
+  the hero exits rigidly with the order preserved.
 - **Example: parallax landscape** — a scroll-driven hero (sky, far hills, mid hills, deep
   hills, a viaduct with a **train crossing it**, foreground trees) recreated from a 2.25s
   screen recording as one self-contained page: **traced** SVG ridgelines, ~20 lines of JS,

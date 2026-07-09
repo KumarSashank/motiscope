@@ -111,6 +111,39 @@ Steps:
 
 **Read timing from the numbers; read everything else from the frames.**
 
+### The frames are evidence, not an inventory
+
+Frames are chosen by the **motion-energy signal**. Anything small, low-contrast, briefly
+visible, or mostly occluded barely moves that signal and **may not appear in a single curated
+frame** — while still being a headline feature of the animation. A train crossing a bridge was
+missed exactly this way.
+
+Before you commit to a spec:
+
+- Ask **"is anything else moving?"** and go check the clip, not just the frames. Diff a region
+  across the whole video, or sample uniformly at a rate the curation skipped.
+- If the user names something you cannot see, **believe them and go look**. Its absence from
+  the frames is not evidence of its absence from the animation.
+
+### Before you trust a number
+
+A failed automated measurement does not crash. It returns a **confident float**.
+
+- **Two estimators, or you have none.** Measure the same quantity a second, independent way
+  (different scale, different feature, different algorithm). Agreement is a result; a
+  disagreement of 6× means at least one is lying, and you cannot tell which by looking.
+- **Say "not recoverable"** when methods disagree. Averaging `-0.03 .. 0.63` into `0.30`
+  invents a fact. Reporting the range *is* the finding.
+- **Occluded features report clamped constants.** A value that is pinned at a frame edge, or
+  that stays put while everything around it moves, is not a measurement.
+- **Scroll-driven ≠ time-driven.** For a parallax, scroll-zoom or pinned section, the seconds
+  in the recording are *the recorder's*. Only **ratios** (layer speed ÷ scroll speed) are
+  intrinsic. One clip can contain both kinds of clock.
+
+The full list, with the real failures behind each one, is in
+`references/measurement-traps.md`. Read it before reporting any velocity, easing or ratio you
+derived yourself rather than reading out of `report.md`.
+
 ## Step 4 — produce the animation spec
 
 Emit a target-agnostic spec: a **timing skeleton (measured) + your visual reading (what each element is and does)**. Schema:
@@ -140,6 +173,8 @@ Rules:
 - Be honest about a leading `hold`: a gentle ease-in's slow start can read as a short hold (sub-pixel motion is invisible in the analysis thumbnails). Check the first frames — if the element already moved slightly, treat it as the start of the ease, not a delay.
 - **Loops:** if the report flags a loop, set `"loop": true` with `period_ms`. It can be a *half*-cycle for back-and-forth motion — decide loop-vs-yoyo from the frames.
 - If an effect can't be reduced to `props` (a complex morph, a particle system, a shader), say so in `animation`/`notes` and let `recreate` build it directly from your description — don't force it into simple props.
+- **Scroll-driven captures:** set `"scroll_driven": true` and do **not** copy `duration_ms` into the spec as if it were the design's. Report **ratios** (layer speed ÷ page-scroll speed) and note which quantities belong to the recorder. A clip can be scroll-driven *and* contain a time-driven object (a train, a spinner, a looping badge) — measure that object's speed separately.
+- **Label every number you derived yourself** (a velocity, a ratio, a period) as measured, estimated, or **not recoverable**. Never let a chosen value read as a measured one.
 
 ## Step 5 — offer to recreate
 
