@@ -21,7 +21,7 @@ except ImportError:
     import analyze_motion
     import extract_frames
 
-VIDEO_EXTS = {".mp4", ".mov", ".webm", ".mkv", ".m4v", ".avi", ".flv", ".wmv"}
+VIDEO_EXTS = {".mp4", ".mov", ".webm", ".mkv", ".m4v", ".avi", ".flv", ".wmv", ".gif"}
 _SPARK = "▁▂▃▄▅▆▇█"
 
 # Presets: (frame_budget, resolution). Explicit --frame-budget/--resolution override.

@@ -31,6 +31,20 @@ A Claude Code plugin dedicated to motion design. Pure Python (standard library) 
 > "I want this animation on my site." — drop the clip, run `/motiscope:analyze`,
 > then `/motiscope:recreate gsap`.
 
+## Demo — original → recreated
+
+| Original (recorded from the web) | Recreated with motiscope |
+|:--:|:--:|
+| <img src="docs/examples/banana/source-tomato.gif" width="340" alt="original tomato character animation"> | <img src="docs/examples/banana/banana-loop.svg" width="340" alt="banana character recreated with motiscope"> |
+
+motiscope measured the **motion** of the tomato — a 4.45s clock, the wake-and-wave beats,
+and the easing curve of each. The **banana is an original character** built on that
+measured motion: an 11 KB animated SVG. *The timing transfers; the artwork doesn't have to.*
+
+Original animation from [SVGator's website-animation examples](https://www.svgator.com/blog/website-animation-examples-and-effects/)
+— all credit to the original creator. → [full example](docs/examples/banana/) ·
+[gallery](https://kumarsashank.github.io/motiscope/gallery.html)
+
 ## How it works
 
 <p align="center"><img src="docs/pipeline.svg" alt="pipeline: video → frames → energy → spec → code" width="100%"></p>
@@ -84,7 +98,7 @@ consent) install them (`brew install ffmpeg` on macOS). New here? See
 Or just drop a recording into an `animations/` folder in your project and run
 `/motiscope:analyze` — it will find it.
 
-**Local files only.** Supported: `.mp4 .mov .webm .mkv .m4v .avi`. To capture a
+**Local files only.** Supported: `.mp4 .mov .webm .mkv .m4v .avi .gif`. To capture a
 web animation, screen-record it and save the file.
 
 ## Commands

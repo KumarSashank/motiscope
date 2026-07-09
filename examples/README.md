@@ -35,11 +35,10 @@ Copy [`_template/`](_template/) to start.
 
 ## Index
 
-| Example | Motion type | Target | Tier |
+| Example | Motion type | Target | Source |
 |---|---|---|---|
-| _be the first — see below_ | | | |
-
-<!-- Add a row per example: | [name](name/) | Stagger | GSAP | 1 | -->
+| [tomato → banana](../docs/examples/banana/) | character wake-up loop | animated SVG | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |
+| [Alterfx landing](../docs/examples/alterfx/) | scroll-zoom, stagger, sparkle wipe | GSAP + ScrollTrigger | [Dribbble shot](https://dribbble.com/shots/26592174-Landing-Page-Animation-for-AI-Video-Production-Platform) |
 
 ## Contribute one
 

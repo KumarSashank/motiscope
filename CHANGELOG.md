@@ -3,6 +3,17 @@
 All notable changes to motiscope are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses semver.
 
+## [0.6.0] — unreleased
+
+### Added
+- **`.gif` inputs.** Screen recordings of web animations are very often GIFs; `analyze`
+  now accepts them alongside the video formats.
+- **Example: tomato → banana.** A character wake-up loop recorded from
+  [SVGator's website-animation examples](https://www.svgator.com/blog/website-animation-examples-and-effects/),
+  recreated as an 11 KB animated SVG — with an **original banana character** built on the
+  motion motiscope measured from the tomato. Featured in the README and the gallery.
+  *The timing transfers; the artwork doesn't have to.*
+
 ## [0.5.0] — unreleased
 
 ### Added

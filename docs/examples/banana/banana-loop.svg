@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="800" height="520"
+     role="img" aria-label="A banana character wakes up when a light turns on, then waves.">
+  <title>motiscope — recreated from a screen recording</title>
+
+  <style>
+    /* Every animation shares one 4.4s clock so the whole scene stays in lockstep. */
+    .anim { animation-duration: 4.4s; animation-iteration-count: infinite; }
+
+    /* Readers who prefer reduced motion get the lit frame, held still. */
+    @media (prefers-reduced-motion: reduce) {
+      .anim { animation-play-state: paused !important; animation-delay: -1.95s !important; }
+    }
+
+    #spotlight   { animation-name: spotlightK; }
+    #bg          { animation-name: bgK; }
+    #bananaMain  { animation-name: mainK; }
+    #bananaShade { animation-name: shadeK; }
+    #stem        { animation-name: stemK; }
+    #tip         { animation-name: tipK; }
+    #leaf        { animation-name: leafK; }
+    #gloss       { animation-name: glossK; }
+    #mouthSmile  { animation-name: smileK; }
+    .blush       { animation-name: blushK; }
+
+    #char     { animation-name: popK;  transform-box: view-box; transform-origin: 325px 442px; }
+    #mouthO   { animation-name: oK;    transform-box: fill-box; transform-origin: 50% 50%; }
+    #hand     { animation-name: handK; transform-box: view-box; transform-origin: 468px 306px; }
+    #handWave { animation-name: waveK; transform-box: view-box; transform-origin: 468px 306px; }
+
+    /* the weight shift: body leans, thighs pivot at the knee, feet never move */
+    #body     { animation-name: bodyK; }
+    #thighL   { animation-name: thighLK; transform-box: view-box; transform-origin: 298px 420px; }
+    #thighR   { animation-name: thighRK; transform-box: view-box; transform-origin: 352px 420px; }
+
+    /* 0-27.3%  dim hold
+       27.3%    the light arrives
+       31.8%    it notices  (surprised "O", body still dull)
+       35.5%    it lights up (spring, 6% overshoot)
+       38.0%    hand comes up, smile returns
+       40.9%    blush blooms
+       43.2-81.8%  lit hold, idle wave
+       81.8-90.9%  light off (faster than on, as measured)  */
+
+    @keyframes spotlightK {
+      0%, 27.3%   { opacity: 0; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      33.2%       { opacity: 1; }
+      81.8%       { opacity: 1; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      90.9%, 100% { opacity: 0; }
+    }
+    @keyframes bgK {
+      0%, 27.3%   { fill: #A3B9B7; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      33.2%       { fill: #BCCFC6; }
+      81.8%       { fill: #BCCFC6; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      90.9%, 100% { fill: #A3B9B7; }
+    }
+    @keyframes mainK {
+      0%, 35.5%   { fill: #A79A62; }
+      41.4%       { fill: #FFC83D; }
+      81.8%       { fill: #FFC83D; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      90.9%, 100% { fill: #A79A62; }
+    }
+    @keyframes shadeK {
+      0%, 35.5%   { fill: #8B8050; }
+      41.4%       { fill: #EFA81E; }
+      81.8%       { fill: #EFA81E; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      90.9%, 100% { fill: #8B8050; }
+    }
+    @keyframes stemK {
+      0%, 35.5%   { stroke: #5A4632; }
+      41.4%       { stroke: #6B4226; }
+      81.8%       { stroke: #6B4226; }
+      90.9%, 100% { stroke: #5A4632; }
+    }
+    @keyframes tipK {
+      0%, 35.5%   { fill: #5A4632; }
+      41.4%       { fill: #6B4226; }
+      81.8%       { fill: #6B4226; }
+      90.9%, 100% { fill: #5A4632; }
+    }
+    @keyframes leafK {
+      0%, 35.5%   { fill: #5C7A5E; }
+      41.4%       { fill: #3FBF5F; }
+      81.8%       { fill: #3FBF5F; }
+      90.9%, 100% { fill: #5C7A5E; }
+    }
+    @keyframes glossK {
+      0%, 36.4%   { opacity: 0; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      40.9%       { opacity: 1; }
+      81.8%       { opacity: 1; }
+      90.9%, 100% { opacity: 0; }
+    }
+    @keyframes popK {
+      0%, 35.5%   { transform: scale(1);    animation-timing-function: cubic-bezier(.34,1.56,.64,1); }
+      38.4%       { transform: scale(1.06); animation-timing-function: cubic-bezier(.34,1.56,.64,1); }
+      41.4%, 100% { transform: scale(1); }
+    }
+    @keyframes smileK {
+      0%, 31.8%   { opacity: 1; }
+      33.6%       { opacity: 0; }
+      38.6%       { opacity: 0; }
+      40.9%, 100% { opacity: 1; }
+    }
+    @keyframes oK {
+      0%, 31.8%   { opacity: 0; transform: scale(.3); animation-timing-function: cubic-bezier(.34,1.56,.64,1); }
+      34.5%       { opacity: 1; transform: scale(1); }
+      38.0%       { opacity: 1; transform: scale(1); }
+      39.8%, 100% { opacity: 0; transform: scale(1); }
+    }
+    @keyframes handK {
+      0%, 38.0%   { opacity: 0; transform: rotate(-40deg); animation-timing-function: cubic-bezier(.34,1.56,.64,1); }
+      41.6%       { opacity: 1; transform: rotate(0deg); }
+      81.8%       { opacity: 1; transform: rotate(0deg); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      90.9%, 100% { opacity: 0; transform: rotate(-40deg); }
+    }
+    @keyframes waveK {
+      0%, 43.2%   { transform: rotate(0deg);  animation-timing-function: ease-in-out; }
+      49.5%       { transform: rotate(14deg); animation-timing-function: ease-in-out; }
+      55.8%       { transform: rotate(0deg);  animation-timing-function: ease-in-out; }
+      62.1%       { transform: rotate(14deg); animation-timing-function: ease-in-out; }
+      68.4%       { transform: rotate(0deg);  animation-timing-function: ease-in-out; }
+      74.7%       { transform: rotate(14deg); animation-timing-function: ease-in-out; }
+      81.8%, 100% { transform: rotate(0deg); }
+    }
+    @keyframes blushK {
+      0%, 40.9%   { opacity: 0; }
+      43.2%       { opacity: .55; }
+      81.8%       { opacity: .55; }
+      90.9%, 100% { opacity: 0; }
+    }
+
+    /* The stance. Hips travel the same 8px the body does:
+       left thigh is 76px long -> asin(8/76) = 6.0deg
+       right thigh is 60px long -> asin(8/60) = 7.7deg
+       Settles at 44.5%, a little after everything else — as in the source. */
+    @keyframes bodyK {
+      0%, 35.5%   { transform: translate(0,0); animation-timing-function: cubic-bezier(.34,1.56,.64,1); }
+      44.5%       { transform: translate(8px,3px); }
+      81.8%       { transform: translate(8px,3px); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      90.9%, 100% { transform: translate(0,0); }
+    }
+    @keyframes thighLK {
+      0%, 35.5%   { transform: rotate(0deg); animation-timing-function: cubic-bezier(.34,1.56,.64,1); }
+      44.5%       { transform: rotate(6deg); }
+      81.8%       { transform: rotate(6deg); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      90.9%, 100% { transform: rotate(0deg); }
+    }
+    @keyframes thighRK {
+      0%, 35.5%   { transform: rotate(0deg); animation-timing-function: cubic-bezier(.34,1.56,.64,1); }
+      44.5%       { transform: rotate(7.7deg); }
+      81.8%       { transform: rotate(7.7deg); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+      90.9%, 100% { transform: rotate(0deg); }
+    }
+  </style>
+
+  <defs>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+    <radialGradient id="warm" cx="0.16" cy="0.04" r="1.1">
+      <stop offset="0"   stop-color="#FFF0A0" stop-opacity=".85"/>
+      <stop offset="0.5" stop-color="#FFF3B8" stop-opacity=".35"/>
+      <stop offset="1"   stop-color="#FFF3B8" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="frame"><rect x="0" y="0" width="800" height="520" rx="14"/></clipPath>
+    <clipPath id="bodyClip">
+      <path d="M452,118 C330,128 240,180 232,250 C224,322 320,366 430,372
+               C398,356 358,314 348,252 C338,188 386,140 452,118 Z"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect id="bg" class="anim" x="0" y="0" width="800" height="520" fill="#A3B9B7"/>
+
+    <g id="spotlight" class="anim" opacity="0">
+      <polygon points="-80,-60 620,-60 300,580 -80,580" fill="#FFEE9C" opacity=".8" filter="url(#soft)"/>
+      <rect x="0" y="0" width="800" height="520" fill="url(#warm)"/>
+    </g>
+
+    <line x1="205" y1="442" x2="480" y2="442" stroke="#4A2E14" stroke-width="5" stroke-linecap="round"/>
+
+    <g id="char" class="anim">
+      <g fill="none" stroke="#4A2E14" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+        <g id="thighL" class="anim"><path d="M300,344 L298,420"/></g>
+        <path d="M298,420 Q298,438 283,438 L260,438"/>
+        <g id="thighR" class="anim"><path d="M352,360 L352,420"/></g>
+        <path d="M352,420 Q352,438 367,438 L390,438"/>
+      </g>
+
+      <g id="body" class="anim">
+      <path id="bananaMain" class="anim" fill="#A79A62"
+            d="M452,118 C330,128 240,180 232,250 C224,322 320,366 430,372
+               C398,356 358,314 348,252 C338,188 386,140 452,118 Z"/>
+      <path id="bananaShade" class="anim" fill="#8B8050"
+            d="M452,118 C386,140 338,188 348,252 C358,314 398,356 430,372
+               C414,342 388,304 380,250 C372,192 404,146 452,118 Z"/>
+
+      <g clip-path="url(#bodyClip)">
+        <ellipse id="gloss" class="anim" cx="302" cy="177" rx="11" ry="29" fill="#FFEFA8"
+                 opacity="0" transform="rotate(-44 302 177)"/>
+      </g>
+
+      <ellipse id="tip" class="anim" cx="428" cy="366" rx="12" ry="7" fill="#5A4632"
+               transform="rotate(38 428 366)"/>
+      <path id="stem" class="anim" d="M450,120 C452,100 458,84 470,72"
+            fill="none" stroke="#5A4632" stroke-width="13" stroke-linecap="round"/>
+      <ellipse id="leaf" class="anim" cx="508" cy="60" rx="30" ry="20" fill="#5C7A5E"
+               transform="rotate(-16 508 60)"/>
+      <g stroke="#20351F" stroke-width="2" fill="none" opacity=".65">
+        <path d="M481,68 L535,50"/>
+        <path d="M495,49 L504,71"/>
+        <path d="M514,47 L520,68"/>
+      </g>
+
+      <circle cx="268" cy="232" r="9" fill="#3B2412"/>
+      <circle cx="318" cy="232" r="9" fill="#3B2412"/>
+      <ellipse class="blush anim" cx="248" cy="266" rx="13" ry="8" fill="#FF6FA5" opacity="0"/>
+      <ellipse class="blush anim" cx="332" cy="262" rx="13" ry="8" fill="#FF6FA5" opacity="0"/>
+      <path id="mouthSmile" class="anim" d="M270,270 Q292,288 314,268"
+            fill="none" stroke="#3B2412" stroke-width="6" stroke-linecap="round"/>
+      <ellipse id="mouthO" class="anim" cx="292" cy="274" rx="10" ry="13" fill="#3B2412" opacity="0"/>
+
+      <g id="hand" class="anim" opacity="0">
+        <g id="handWave" class="anim" fill="none" stroke="#4A2E14" stroke-width="4"
+           stroke-linecap="round" stroke-linejoin="round">
+          <path d="M444,254 Q453,234 462,251 Q471,232 480,251 Q489,236 497,255
+                   C503,267 501,283 493,294 C482,308 454,308 444,292
+                   C438,282 438,266 444,254 Z"/>
+          <path d="M441,268 C430,264 421,272 424,282 C427,291 437,292 443,287"/>
+        </g>
+      </g>
+      </g><!-- /#body -->
+    </g><!-- /#char -->
+  </g>
+</svg>

@@ -1,6 +1,6 @@
 ---
 name: analyze
-description: Analyze a screen recording of an animation to characterize its motion — timing, easing, transforms, and sequencing — so it can be recreated as web code. Use when the user drops or points at a video of an animation (.mp4/.mov/.webm/.mkv/.m4v/.avi) and says things like "I want this animation on my site", "recreate this motion", "how is this animated", or runs /motiscope:analyze.
+description: Analyze a screen recording of an animation to characterize its motion — timing, easing, transforms, and sequencing — so it can be recreated as web code. Use when the user drops or points at a video of an animation (.mp4/.mov/.webm/.mkv/.m4v/.avi/.gif) and says things like "I want this animation on my site", "recreate this motion", "how is this animated", or runs /motiscope:analyze.
 argument-hint: "[path-to-video] [notes]"
 allowed-tools: Bash, Read, AskUserQuestion
 user-invocable: true
@@ -42,7 +42,7 @@ Exit 0 → proceed silently. Non-zero → `ffmpeg`/`ffprobe` are missing; hand o
 - If the user gave a path (in `$1` or their message), use it.
 - Otherwise scan the drop folder and project root:
   ```bash
-  ls -t animations/*.{mp4,mov,webm,mkv,m4v,avi} *.{mp4,mov,webm,mkv,m4v,avi} 2>/dev/null | head
+  ls -t animations/*.{mp4,mov,webm,mkv,m4v,avi,gif} *.{mp4,mov,webm,mkv,m4v,avi,gif} 2>/dev/null | head
   ```
   - Several candidates → `AskUserQuestion` which one.
   - Exactly one → use it.
