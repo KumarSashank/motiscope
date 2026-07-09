@@ -29,6 +29,8 @@ PRESETS = {
     "draft":    (12, 512),   # cheapest — quick look
     "balanced": (32, 640),   # default — most cases
     "detailed": (48, 960),   # dense sequences / reading on-screen text
+    "landing":  (44, 1280),  # web/landing walkthroughs — cover each section's design
+                             # at readable resolution (text, UI) + capture in-section motion
 }
 
 
@@ -145,44 +147,60 @@ def _allocate_by_weight(weights: list[float], budget_for_motion: int,
     return alloc
 
 
-def decompose_timestamps(motion: dict, budget: int, drill_fps: float | None = None):
-    """Build a timestamp list that spends frames on MOTION and skips dead holds.
+def _place(pts: dict, per_beat: list, s: dict, k: int) -> None:
+    a, b = s["start_ms"] / 1000, s["end_ms"] / 1000
+    for i in range(k):
+        pts.setdefault(round(a + (b - a) * (i / (k - 1) if k > 1 else 0.5), 3), s["kind"])
+    per_beat.append({"start_s": round(a, 3), "end_s": round(b, 3), "kind": s["kind"],
+                     "peak_energy": s.get("peak_energy"), "frames": k,
+                     "fps": round(k / max(b - a, 1e-3), 1)})
 
-    Frames are allocated across motion beats **in proportion to each beat's motion
-    magnitude** (duration × peak energy), so a fast/intense beat gets more frames than
-    a slow one, with a per-beat floor. Each hold gets a single representative frame and
-    meaningful salient beats are kept. If `drill_fps` is given, falls back to a uniform
-    rate per beat instead of weighted allocation. Returns (entries, meta).
+
+def _transition_frames(s: dict) -> int:
+    """A monotonic transition (fade/cut) only needs its endpoints — never a burst."""
+    return 2 if (s["end_ms"] - s["start_ms"]) / 1000 < 0.5 else 3
+
+
+def decompose_timestamps(motion: dict, budget: int, drill_fps: float | None = None):
+    """Build a timestamp list that spends frames on the real MOTION.
+
+    The budget goes to *element animations* (move segments), weighted by their motion
+    magnitude (duration × peak energy). **Transitions (fades/cuts) are capped at a
+    couple of frames each** — they carry little information (a fast full-screen fade
+    has huge energy but only needs its endpoints), so they no longer hog the budget.
+    Each hold gets one representative content frame. Returns (entries, meta).
     """
     segs = motion.get("segments", [])
     win = motion.get("window") or {}
     lo = win.get("start_s", 0.0)
     hi = win.get("end_s", motion["video"]["duration_seconds"])
-    motion_segs = [s for s in segs if s["kind"] != "hold"]
     holds = [s for s in segs if s["kind"] == "hold"]
+    moves = [s for s in segs if s["kind"] == "move"]
+    transitions = [s for s in segs if s["kind"] in ("fade-in", "fade-out")]
 
     pts: dict[float, str] = {round(lo, 3): "start", round(hi, 3): "end"}
-    per_beat = []
+    per_beat: list = []
 
+    # transitions: a couple of frames each, capped
+    trans_frames = 0
+    for s in transitions:
+        k = _transition_frames(s)
+        trans_frames += k
+        _place(pts, per_beat, s, k)
+
+    # moves: the remaining budget, weighted by motion magnitude (fast/intense -> more)
+    reserved = 2 + len(holds) + trans_frames
     if drill_fps is not None:
-        allocs = [max(2, int((s["end_ms"] - s["start_ms"]) / 1000 * drill_fps) + 1) for s in motion_segs]
+        allocs = [max(2, int((s["end_ms"] - s["start_ms"]) / 1000 * drill_fps) + 1) for s in moves]
         mode = "uniform"
     else:
-        reserved = 2 + len(holds)
-        for_motion = max(len(motion_segs) * 3, budget - reserved)
+        for_moves = max(len(moves) * 3, budget - reserved) if moves else 0
         weights = [max(1e-6, (s["end_ms"] - s["start_ms"]) / 1000 * float(s.get("peak_energy", 1.0)))
-                   for s in motion_segs]
-        allocs = _allocate_by_weight(weights, for_motion)
+                   for s in moves]
+        allocs = _allocate_by_weight(weights, for_moves) if moves else []
         mode = "weighted"
-
-    for s, k in zip(motion_segs, allocs):
-        a, b = s["start_ms"] / 1000, s["end_ms"] / 1000
-        for i in range(k):
-            t = round(a + (b - a) * (i / (k - 1) if k > 1 else 0.5), 3)
-            pts.setdefault(t, s["kind"])
-        per_beat.append({"start_s": round(a, 3), "end_s": round(b, 3), "kind": s["kind"],
-                         "peak_energy": s.get("peak_energy"), "frames": k,
-                         "fps": round(k / max(b - a, 1e-3), 1)})
+    for s, k in zip(moves, allocs):
+        _place(pts, per_beat, s, k)
 
     for s in holds:
         pts.setdefault(round(s["start_ms"] / 1000, 3), "holdstart")
@@ -190,9 +208,12 @@ def decompose_timestamps(motion: dict, budget: int, drill_fps: float | None = No
         if e["reason"] in _SALIENT_KEEP:
             pts[round(e["t"], 3)] = e["reason"]
 
+    per_beat.sort(key=lambda p: p["start_s"])
     entries = [{"t": t, "reason": r} for t, r in sorted(pts.items())]
-    meta = {"mode": "decomposed", "allocation": mode, "motion_segments": len(motion_segs),
-            "holds": len(holds), "per_beat": per_beat}
+    meta = {"mode": "decomposed", "allocation": mode,
+            "motion_segments": len(moves) + len(transitions),
+            "moves": len(moves), "transitions": len(transitions), "holds": len(holds),
+            "per_beat": per_beat}
     return entries, meta
 
 

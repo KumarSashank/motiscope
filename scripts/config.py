@@ -16,6 +16,8 @@ APP = "motiscope"
 
 # Provider registries: provider name -> env var holding its key.
 IMAGE_PROVIDERS = {
+    "gemini": "GEMINI_API_KEY",      # Imagen via the Gemini API (implemented)
+    "imagen": "GEMINI_API_KEY",      # alias
     "openai": "OPENAI_API_KEY",
     "stability": "STABILITY_API_KEY",
     "replicate": "REPLICATE_API_TOKEN",
@@ -32,7 +34,7 @@ DEFAULT_CONFIG = {
     "frame_budget": 32,
     "resolution": 640,
     "frame_format": "png",
-    "image_provider": "openai",
+    "image_provider": "gemini",
     "video_provider": "runway",
 }
 

@@ -170,6 +170,34 @@ class TestMotionAnalysis(unittest.TestCase):
         self.assertLessEqual(sum(alloc), 20)
         self.assertTrue(all(a >= 2 for a in alloc))
 
+    def test_decompose_caps_transitions_not_moves(self):
+        # A short move next to two high-energy fades: the fades must NOT hog the budget
+        # (the exact bug the Alterfx clip hit — 33 frames on one fade). Deterministic.
+        motion = {
+            "video": {"duration_seconds": 10}, "window": {"start_s": 0, "end_s": 10},
+            "salient": [],
+            "segments": [
+                {"kind": "move", "start_ms": 0, "end_ms": 500, "peak_energy": 8},
+                {"kind": "fade-out", "start_ms": 600, "end_ms": 900, "peak_energy": 200},
+                {"kind": "hold", "start_ms": 900, "end_ms": 3000},
+                {"kind": "fade-out", "start_ms": 3000, "end_ms": 3300, "peak_energy": 200},
+                {"kind": "hold", "start_ms": 3300, "end_ms": 10000},
+            ],
+        }
+        entries, meta = ingest.decompose_timestamps(motion, budget=32)
+        for pb in meta["per_beat"]:
+            if pb["kind"] in ("fade-in", "fade-out"):
+                self.assertLessEqual(pb["frames"], 3, f"transition over-allocated: {pb}")
+        move_frames = sum(pb["frames"] for pb in meta["per_beat"] if pb["kind"] == "move")
+        self.assertGreater(move_frames, 3, "the actual animation should get real coverage")
+
+    def test_robust_motion_ref_ignores_spikes(self):
+        # a curve dominated by a few huge spikes should reference the typical level, not the peak
+        energy = [5.0] * 90 + [500.0] * 10          # 10% cut/fade spikes
+        ref = analyze_motion.robust_motion_ref(energy)
+        self.assertLess(ref, 100, "reference must not be dominated by the spikes")
+        self.assertGreater(ref, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

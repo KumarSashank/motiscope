@@ -104,6 +104,7 @@ does **not** grow with video length (a 10s clip typically yields ~10 frames).
 | `draft` | 12 | 512px | quick look, tight budget |
 | `balanced` *(default)* | 32 (usually 8–20 after dedup) | 640px | most cases |
 | `detailed` | 48 | 960px | dense sequences / reading text |
+| `landing` | 44 | 1280px | web/landing walkthroughs — cover each section + its motion |
 
 - **Focus a section** of a longer video: `--start 0:12 --end 0:15` (timestamps come
   back in absolute source time).
@@ -134,17 +135,22 @@ Per-video working files land in a gitignored `.motiscope/<slug>/`:
 
 Recreated code is written to `motiscope-output/<target>/` by default.
 
-## Asset generation (optional, stubbed)
+## Asset generation (optional)
 
-If a recreation needs an image or video asset, `recreate` will ask whether to point
-at your own file, generate one, or use a placeholder. Generation is a **mechanism
-only in v0.1**: the API-key config and consent flow are wired up, but the provider
-call is stubbed (it writes a labeled placeholder and makes no network request). Keys
-live in `~/.config/motiscope/.env` (mode `0600`), are never printed, written into
-generated code, or committed.
+If a recreation needs an image, `recreate` will ask whether to point at your own file,
+generate one, or use a placeholder. **Image generation is real via the `gemini` /
+`imagen` provider** (Imagen through the Gemini API) — set `GEMINI_API_KEY` in
+`~/.config/motiscope/.env` (mode `0600`; keys are never printed, written into generated
+code, or committed). Other providers (video, and other image backends) still write a
+labeled placeholder until wired.
 
-Supported provider slots: image — OpenAI, Stability, Replicate, fal; video — Runway,
-Replicate, fal.
+```
+python3 scripts/assetgen.py generate --type image --provider gemini \
+  --prompt "cinematic hands holding a phone, dark teal grade" --out hero.png --aspect-ratio 16:9
+```
+
+Provider slots: image — **gemini/imagen (implemented)**, OpenAI, Stability, Replicate,
+fal; video — Runway, Replicate, fal.
 
 ## Limitations (measured vs. estimated)
 

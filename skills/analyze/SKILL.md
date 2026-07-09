@@ -67,6 +67,7 @@ The number of frames you `Read` is what costs tokens (~300–400 tokens/frame); 
 | `--preset draft` | 12 | 512px | quick look, tight token budget |
 | `--preset balanced` *(default)* | 32 (usually lands 8–20 after dedup) | 640px | most cases |
 | `--preset detailed` | 48 | 960px | dense multi-beat sequences, or reading on-screen text |
+| `--preset landing` | 44 | 1280px | **web/landing walkthroughs** — cover each section's design at readable resolution + its in-section motion |
 
 Start with `balanced`. Only reach for `detailed` if the animation is intricate or you couldn't read a label; use `draft` for a fast first pass. If the user hasn't said, pick `balanced` and mention they can ask for more detail.
 

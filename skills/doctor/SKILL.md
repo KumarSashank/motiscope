@@ -47,8 +47,11 @@ Asset generation (creating an image/video an animation needs) is **stubbed in v0
 
 | Purpose | Providers (env var) |
 |---|---|
-| Image | OpenAI (`OPENAI_API_KEY`), Stability (`STABILITY_API_KEY`), Replicate (`REPLICATE_API_TOKEN`), fal (`FAL_KEY`) |
+| Image | **Gemini/Imagen (`GEMINI_API_KEY`) — implemented**; OpenAI (`OPENAI_API_KEY`), Stability (`STABILITY_API_KEY`), Replicate (`REPLICATE_API_TOKEN`), fal (`FAL_KEY`) |
 | Video | Runway (`RUNWAY_API_KEY`), Replicate (`REPLICATE_API_TOKEN`), fal (`FAL_KEY`) |
+
+Image generation works today with **`gemini`** (Imagen). Other providers write a
+labeled placeholder until wired.
 
 Reassure the user: keys stay in a local `0600` file, are never printed, never written into generated code, and never committed (the repo `.gitignore` excludes `.env`).
 

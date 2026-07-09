@@ -39,10 +39,29 @@ HOLD_ENERGY_FRACTION = 0.18     # frames below this fraction of peak energy are 
 LOCALIZED_CELL_FRACTION = 0.10  # fraction of grid cells averaged for localized energy
 
 
-def hold_threshold(peak_energy: float) -> float:
-    """Energy below which a frame is 'still'. Relative to the clip's peak motion
-    (energy scale depends on element size / content), with a small noise floor."""
-    return max(NOISE_FLOOR, HOLD_ENERGY_FRACTION * peak_energy)
+def hold_threshold(motion_ref: float) -> float:
+    """Energy below which a frame is 'still', relative to a reference motion level
+    (see robust_motion_ref), with a small noise floor."""
+    return max(NOISE_FLOOR, HOLD_ENERGY_FRACTION * motion_ref)
+
+
+def _percentile(values: list[float], pct: float) -> float:
+    if not values:
+        return 0.0
+    s = sorted(values)
+    k = min(len(s) - 1, max(0, int(pct / 100.0 * len(s))))
+    return s[k]
+
+
+def robust_motion_ref(energy: list[float]) -> float:
+    """Reference motion level for thresholding, robust to cut/fade spikes. A hard cut or
+    a fast full-screen fade produces enormous energy, and on scroll-heavy clips those
+    transitions can be >10% of frames; using the max (or a high percentile) would inflate
+    the threshold and hide the smaller in-section animations. The 75th percentile tracks
+    the typical strong-motion level instead, floored only by the noise floor."""
+    if not energy:
+        return 0.0
+    return max(_percentile(energy, 75), NOISE_FLOOR)
 
 
 # --------------------------------------------------------------------------- #
@@ -684,13 +703,16 @@ def analyze(video: str, out_dir: Path, *, fps="auto", thumb: int = DEFAULT_THUMB
                              start=win_start if windowed else None,
                              end=win_end if windowed else None)
     fades = detect_fades(signal.get("brightness"), signal.get("black_intervals", []), win_dur)
-    segments = build_segments(energy, use_fps, fades, signal.get("freezes", []), peak_energy)
-    beats = find_beats(energy, use_fps, peak_energy) if energy else {"peaks": [], "keyposes": []}
+    # Reference for thresholding is robust to brief cut/fade spikes so the smaller
+    # in-section animations aren't swamped and mislabeled as holds.
+    motion_ref = robust_motion_ref(energy)
+    segments = build_segments(energy, use_fps, fades, signal.get("freezes", []), motion_ref)
+    beats = find_beats(energy, use_fps, motion_ref) if energy else {"peaks": [], "keyposes": []}
     grid_summary = summarize_grid(a["cell_series"], use_fps, grid) if a.get("cell_series") else \
         {"rows": grid, "cols": grid, "active_cells": [], "stagger_hint": None}
     salient = salient_timestamps(win_dur, segments, beats, signal.get("scene_cuts", []), fades)
 
-    loop = detect_loop(energy, use_fps, peak_energy) if energy else \
+    loop = detect_loop(energy, use_fps, motion_ref) if energy else \
         {"is_loop": False, "period_ms": None, "confidence": 0.0}
 
     move_segs = [s for s in segments if s["kind"] == "move"]
@@ -705,7 +727,8 @@ def analyze(video: str, out_dir: Path, *, fps="auto", thumb: int = DEFAULT_THUMB
                              "value": round(peak_energy, 3)},
                     "mean": round(sum(energy) / len(energy), 3) if energy else 0,
                     "global_mean": round(sum(global_energy) / len(global_energy), 3) if global_energy else 0,
-                    "hold_threshold": round(hold_threshold(peak_energy), 3)}
+                    "motion_ref": round(motion_ref, 3),
+                    "hold_threshold": round(hold_threshold(motion_ref), 3)}
 
     result = {
         "video": meta,

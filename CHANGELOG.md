@@ -3,6 +3,27 @@
 All notable changes to motiscope are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses semver.
 
+## [0.2.0] — unreleased
+
+Fixes from the first real-world landing-page test (a Dribbble concept walkthrough).
+
+### Fixed
+- **Transitions no longer hide the real animations.** A hard cut or full-screen fade
+  produced near-maximal energy that inflated the motion threshold, so the actual
+  in-section element animations were mislabeled as `hold`. The threshold now uses a
+  spike-robust reference (75th-percentile of energy), surfacing those animations.
+- **Auto-decompose no longer burns the budget on transitions.** Fades/cuts are capped
+  at ~2–3 frames each (they're monotonic — endpoints are enough); the budget goes to
+  the actual `move` beats and each content section gets a representative frame.
+  (Previously a single 0.27s fade could grab 33 of 48 frames.)
+
+### Added
+- **`landing` preset** (44 frames / 1280px) for web/landing walkthroughs — cover each
+  section's design at readable resolution plus the in-section motion.
+- **Real image generation** for the `gemini` / `imagen` provider (Imagen via the Gemini
+  API) in `assetgen.py` — the asset-key + consent flow now actually produces images.
+  Other providers (video, etc.) still write a labeled placeholder.
+
 ## [0.1.0] — unreleased
 
 Initial release.

@@ -66,7 +66,7 @@ If the spec references an image/video asset (a hero image, a looping background,
    python3 "$SCRIPTS/assetgen.py" --check
    python3 "$SCRIPTS/assetgen.py" generate --type image --provider <name> --prompt "<desc>" --out "<path>"
    ```
-   If no provider key is configured, `AskUserQuestion` for the provider and hand off to `/motiscope:doctor` to store the key. **Asset generation is stubbed in v0.1** — it writes a labeled placeholder, makes no network call, and says so. Tell the user the placeholder must be replaced (or a provider call implemented) for a real asset.
+   If no key is configured, `AskUserQuestion` for the provider and hand off to `/motiscope:doctor` to store the key. **Image generation is real via the `gemini`/`imagen` provider** (Imagen through the Gemini API — set `GEMINI_API_KEY`); pass `--aspect-ratio 16:9|4:3|1:1|3:4|9:16`. Other providers still write a labeled placeholder — if you get one, tell the user to use `gemini` or swap in a real asset.
 3. **Use a placeholder** — a neutral colored box, and note it.
 
 Never write API keys into generated code or commit them.
