@@ -93,6 +93,7 @@ web animation, screen-record it and save the file.
 |---|---|
 | `/motiscope:analyze [path] [notes]` | Extract the motion analysis + curated frames, then characterize the animation as a spec. |
 | `/motiscope:recreate [gsap\|css\|framer\|lottie] [out-dir]` | Turn the spec into runnable code for a target framework. |
+| `/motiscope:rebuild-site [path] [gsap\|css\|framer]` | Rebuild a **whole landing page** from a walkthrough recording — sections, copy, design system, scroll animations, and generated assets. |
 | `/motiscope:doctor` | Verify `ffmpeg`/`ffprobe`; scaffold `~/.config/motiscope/{config.json,.env}`. |
 
 GSAP output leans on the official GSAP skills (timeline / core / scrolltrigger /

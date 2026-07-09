@@ -3,6 +3,17 @@
 All notable changes to motiscope are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses semver.
 
+## [0.5.0] — unreleased
+
+### Added
+- **`/motiscope:rebuild-site`** — a workflow that rebuilds a *whole landing page* from a
+  walkthrough recording, not just one animation. It orchestrates: analyze the walkthrough
+  (measured section timing + transitions + curated frames) → reconstruct the site plan
+  (sections, copy, design system) from the frames → generate the photographic assets
+  (Imagen) → build a full multi-section page with scroll-driven motion wired to the
+  measured timing. Includes an attribution/rights step for design-to-code studies. This is
+  the Alterfx example, generalized into one command.
+
 ## [0.4.0] — unreleased
 
 Refocus: the numbers measure *time*; the model does the *perception*.
