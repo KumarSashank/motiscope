@@ -2,120 +2,167 @@
 
 **Live page:** [kumarsashank.github.io/motiscope/examples/parallax/](https://kumarsashank.github.io/motiscope/examples/parallax/)
 
-A scroll-driven parallax hero — sky, far hills, mid hills, deep hills with a viaduct, and a
-near-black foreground of trees, bushes and tulips. Recreated from a **2.25s screen
-recording**. Same terrain, same depth stack, **new palette**.
+A scroll-driven parallax hero — sky, far hills, mid hills, deep hills, a viaduct with a
+**train crossing it**, and a near-black foreground of trees, bushes and tulips. Recreated
+from a **2.25s screen recording**. Traced terrain, measured speeds, **new palette**.
 
 - **Original:** a parallax landing page from SVGator's
   [website animation examples](https://www.svgator.com/blog/website-animation-examples-and-effects/)
   — all credit to the original creator.
-- **Recreation:** [`index.html`](index.html) — one self-contained file. Hand-drawn SVG layers,
+- **Recreation:** [`index.html`](index.html) — one self-contained file. Traced SVG ridgelines,
   ~20 lines of JavaScript, no dependencies, `prefers-reduced-motion` honoured.
+- **Terrain data:** [`ridges.json`](ridges.json) — one `y` per column, per layer.
+- **Build script:** [`generate.py`](generate.py).
 
-## What "measuring a parallax" actually means
+## Two clocks in one recording
 
-A parallax is **scroll-driven**, not time-driven. So the timing motiscope reports for this
-clip — a 0.77s hold, then 1.45s of motion — describes *the person who did the scrolling*,
-not the design. Replaying those seconds would recreate the recording, not the website.
+A parallax is **scroll-driven**. The timing motiscope reports for this clip — a 0.77s hold,
+then 1.45s of motion — describes *the person who did the scrolling*, not the design. Replay
+those seconds and you recreate the recording, not the website.
 
-What *is* intrinsic to the design is the **ratio** of each layer's speed to the page scroll.
-That's the number worth recovering, and it survives however fast you happened to scroll.
+But the **train is time-driven**. Its speed is a property of the animation, and it survives
+however fast you happened to scroll. So this one clip contains two different kinds of number:
 
-## How the layer speeds were recovered
+| Quantity | Kind | Recoverable? |
+|---|---|---|
+| Layer speed **ratios** | scroll-intrinsic | yes, for four of six layers |
+| Train speed | time-intrinsic | yes — **1500 px/s** |
+| Scroll duration / hold | the recorder's | meaningless for the design |
+| Train repeat period | time-intrinsic | **no** — one pass in 2.25s tells you nothing |
 
-Each layer is a flat colour, so each layer is a binary mask. For a pair of frames, the
-vertical shift `dy` that minimises mask disagreement is that layer's displacement. Sum it
-over a window and you have its velocity.
+## Layer speeds
 
-The trap is that layers **enter the viewport** during the scroll. Any statistic that depends
-on a layer's visible extent — its topmost row, its centroid, a fixed viewport band — moves
-for reasons that have nothing to do with translation. Four estimators were tried, and the
-first three disagreed by up to 6× on the middle layers:
+Each layer is a flat colour, so each layer is a binary mask. The vertical shift `dy` that
+minimises mask disagreement between two frames is that layer's displacement.
+
+The trap is that layers **enter the viewport** during a scroll, so any statistic depending on
+a layer's visible extent — topmost row, centroid, a fixed viewport band — moves for reasons
+that have nothing to do with translation. Four estimators were tried; three failed:
 
 | Method | Verdict |
 |---|---|
-| fixed viewport bands | measures the page scroll, not the layer |
-| topmost ridge row | jumps between hill peaks; clamps at the screen edge |
-| textured-patch tracking | latched onto the headline text instead of the hills |
-| **mask alignment over a common window** | **stable, and reproduced at two scales** |
+| fixed viewport bands | measured the page scroll, not the layer |
+| topmost ridge row | jumped between hill peaks, clamped at the screen edge |
+| textured-patch tracking | latched onto the purple **headline text**, not the purple hills |
+| **mask alignment over a common window** | **stable, reproduced at two scales** |
 
-The fix was to restrict to the window where **every** layer is on screen at once
-(frames 97–134, `1.62s–2.23s`) and accumulate identical numbers of steps for each.
+Restricting to the window where **every** layer is on screen (frames 97–134) and accumulating
+identical step counts, run at quarter and half resolution:
 
-## The result
-
-Run twice — at quarter and half resolution, which halves the quantisation of `dy`:
-
-| Layer | quarter-scale | half-scale | verdict |
+| Layer | quarter | half | verdict |
 |---|:--:|:--:|---|
 | mid hills | 0.72× | 0.72× | **measured** |
-| deep hills + viaduct | 0.85× | 0.87× | **measured** |
-| near hills | 0.97× | 1.00× | moves with the foreground |
-| foreground | 1.00× | 1.00× | reference layer |
+| deep hills | 0.85× | 0.87× | **measured** |
+| near hills | 0.97× | 1.00× | **measured** |
+| foreground | 1.00× | 1.00× | reference |
 | sky / far hills | −0.03× / 0.10× | 0.63× / 0.33× | **not recoverable** |
 
-Two coefficients reproduce independently. **The backdrop does not**, and the reason is
-honest rather than mysterious: the sky is a smooth gradient, so its colour mask isn't stable
-between frames. Estimates ranged from −0.03 to 0.63 depending on scale. Any single number
-quoted for it would be invented.
+**The backdrop is not recoverable**, and the reason is honest rather than mysterious: the sky
+is a smooth gradient, so its colour mask isn't stable between frames. Estimates ranged from
+−0.03 to 0.63. Any single number quoted for it would be invented. In the recreation the sky
+is pinned (`0.00`) and the far hills set to `0.30` — **design choices inside the uncertainty**,
+not measurements.
 
-So in the recreation: `0.72` and `0.86` are **measured**. `1.00` for the foreground is
-measured. `0.00` (pinned sky) and `0.30` (far hills) are **design choices inside the
-measurement's uncertainty** — a pinned sky is what a designer would do, and 0.30 sits within
-the estimate range.
+### The viaduct
+
+The bridge deck is the sharpest rigid feature in the whole clip, so it was tracked directly
+against the two foreground tree apexes:
+
+```
+bridge deck      4.69 px/frame  (resid 3.5)
+left tree apex   5.88 px/frame  (resid 4.4)
+right tree apex  5.82 px/frame  (resid 4.4)
+  -> bridge parallax factor = 0.80x ± 0.04
+```
+
+That is consistent within noise with the deep hills it sits in (0.86×), so it rides that layer.
+
+## The train
+
+Tracked by its **tail**, because the nose spends the whole clip hidden behind a foreground
+tree — a clamped nose would have reported a speed of 16 px/s instead of 1500.
+
+| Property | Value |
+|---|---|
+| Direction | left → right (nose leading) |
+| Speed | **1500 px/s** (tail, frames 96–124) |
+| Length | ~708 px |
+| Height | ~58 px, riding the deck at `y=498` |
+| Easing | **none claimed** |
+
+Per-4-frame velocity estimates scatter from 1080 to 1800 px/s with no clean trend — that's
+measurement noise from car gaps breaking the colour run, not an ease. Constant speed is within
+noise, so the recreation uses `linear`.
+
+The **repeat period is not observable**: the clip shows exactly one pass. The page uses a 12s
+period, which is a design choice; the *speed within* each pass is the measured one.
+
+## Terrain: traced, not approximated
+
+The four hill ridgelines are traced out of the final frame, one `y` per column, into
+[`ridges.json`](ridges.json).
+
+The subtlety: occluders — trees, bushes — always sit **above** the terrain, so a naive
+first-occurrence ridge gets pulled *upward* wherever a tree crosses it. The terrain is
+therefore the **upper quantile** of the raw trace over a wide window, not its median. A median
+still follows a tree crown that spans 200 columns; the 70–80th percentile does not.
+
+The ground line is the one exception — it is almost entirely hidden behind foreground trees in
+the source, so it is derived from the purple ridge rather than traced.
 
 ## Verified, not asserted
 
-The page was probed in a real browser: scroll to 300px, then read each layer's on-screen
-position. A layer's on-screen speed relative to the page **is** its parallax factor.
+Probed in a real browser: scroll to 300px, then read each layer's on-screen position. A
+layer's on-screen speed relative to the page **is** its parallax factor.
 
 ```
 scrollY=300
-set_f=0.00  top=   0.0  implied_f=0.000
-set_f=0.30  top= -90.0  implied_f=0.300
-set_f=0.72  top=-216.0  implied_f=0.720
-set_f=0.86  top=-258.0  implied_f=0.860
-set_f=1.00  top=-300.0  implied_f=1.000
+set_f=0.00  implied_f=0.000     TRAIN dur=12s timing=linear iter=infinite
+set_f=0.30  implied_f=0.300     train bbox w=708 h=58 y=433
+set_f=0.72  implied_f=0.720     train parent layer f=0.86
+set_f=0.86  implied_f=0.860
+set_f=0.97  implied_f=0.970     crossing 1400+708 units in 1.405s = 1500 u/s
+set_f=1.00  implied_f=1.000
 ```
-
-Every layer moves at exactly the factor it was given.
 
 ## How it's built
 
-One CSS declaration does all the work:
+One CSS declaration does the parallax:
 
 ```css
 .ly { transform: translate3d(0, calc(var(--s) * (1 - var(--f))), 0); }
 ```
 
-`--s` is `scrollY`, written once per frame from a rAF-coalesced scroll listener. `--f` is the
-layer's factor. A layer at `f = 0` translates down exactly as fast as the page scrolls up, so
-it is pinned. A layer at `f = 1` doesn't translate at all, so it rides the page. Everything
-between is parallax.
+`--s` is `scrollY`, written once per frame from a rAF-coalesced listener. A layer at `f = 0`
+translates down exactly as fast as the page scrolls up, so it is pinned. A layer at `f = 1`
+doesn't translate at all, so it rides the page. Everything between is parallax.
 
-Under `prefers-reduced-motion: reduce` the transforms are dropped entirely and the scene
-renders as a flat, correct illustration.
+The train is a plain CSS keyframe on a `<g>` inside the deep-hills SVG, so it inherits that
+layer's parallax for free and only needs its own horizontal motion.
+
+Under `prefers-reduced-motion: reduce` the transforms are dropped and the train is **parked
+mid-span** rather than frozen off-screen — a still, correct illustration.
 
 ## Only the palette changed
 
 | Source | Here | |
 |---|---|---|
 | `#FBE9AE` pale gold | `#EAF7F1` mint | sky top |
-| `#FAE086` sand | `#C6E9DF` pale aqua | far hills |
-| `#FC7541` orange | `#6AC6BC` teal | mid hills |
-| `#C9234C` crimson | `#2A7288` deep cyan | deep hills |
-| `#5B0081` purple | `#1B4C66` navy | near hills |
+| `#FAE086` sand | `#CFEBE0` pale aqua | far hills |
+| `#FC7541` orange | `#7FCCC2` teal | mid hills |
+| `#C9234C` crimson | `#38869A` deep cyan | deep hills |
+| `#5B0081` purple | `#1E5570` navy | near hills |
 | `#170433` near-black plum | `#08192A` near-black navy | foreground |
 
-A warm sunset became a cool dawn. The terrain, the viaduct, the tree shapes, the tulips and
-the depth order are the source's.
+A warm sunset became a cool dawn. The terrain, the viaduct, the train, the tree shapes and the
+depth order are the source's.
 
-## What's approximate
+## What's still approximate
 
-- **The hill silhouettes are not traced.** They're sums of sines with the source's rough
-  ridge heights and amplitudes. The shapes rhyme; they don't match curve-for-curve.
-- **The sky and far-hill speeds are chosen**, as above.
-- **Absolute scroll distance is meaningless** — it depends on viewport height, and the
-  recording's scroll speed was the recorder's, not the design's.
+- **Sky and far-hill speeds are chosen**, as above.
+- **The train's repeat period is chosen** (12s).
+- **The ground line is derived**, not traced.
+- **Trees, bushes, tulips and the train's car divisions are our own drawings**, positioned to
+  match the source. Only the terrain is traced.
 
 *The timing transfers; the artwork doesn't have to.*

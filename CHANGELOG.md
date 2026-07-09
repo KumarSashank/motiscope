@@ -7,9 +7,20 @@ All notable changes to motiscope are documented here. The format follows
 
 ### Added
 - **Example: parallax landscape** — a scroll-driven hero (sky, far hills, mid hills, deep
-  hills with a viaduct, foreground trees) recreated from a 2.25s screen recording as one
-  self-contained page: hand-drawn SVG layers, ~20 lines of JS, `prefers-reduced-motion`
-  honoured. Live at `docs/examples/parallax/`.
+  hills, a viaduct with a **train crossing it**, foreground trees) recreated from a 2.25s
+  screen recording as one self-contained page: **traced** SVG ridgelines, ~20 lines of JS,
+  `prefers-reduced-motion` honoured. Live at `docs/examples/parallax/`.
+  - **One clip, two clocks.** The parallax is scroll-driven, so the clip's seconds belong to
+    whoever scrolled. The **train is time-driven**: its speed is a property of the animation,
+    measured at **1500 px/s** by tracking its *tail* (the nose is hidden behind a foreground
+    tree for the whole clip; tracking it would have reported 16 px/s). Its repeat period is
+    *not* observable from one pass, so 12s is a design choice.
+  - **Terrain traced**, one `y` per column per layer (`ridges.json`). Occluders always sit
+    above the terrain, so a ridge is the *upper quantile* of the raw trace, not its median —
+    a median still follows a tree crown spanning 200 columns.
+  - The viaduct's deck is the sharpest rigid feature in the clip: tracked directly at
+    **0.80× ± 0.04** against both foreground tree apexes, consistent within noise with the
+    deep hills it sits in.
   - A parallax is **scroll-driven**, so the clip's seconds belong to whoever scrolled. What
     is intrinsic is each layer's *speed ratio*. Recovered by mask alignment over the window
     where every layer is on screen: **0.72×** (mid hills) and **0.86×** (deep hills), each

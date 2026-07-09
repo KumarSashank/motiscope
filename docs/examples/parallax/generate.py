@@ -1,162 +1,208 @@
 #!/usr/bin/env python3
-"""Generate the parallax recreation — a scroll-driven landscape site.
+"""Generate the parallax recreation — traced terrain, measured layer speeds, a moving train.
 
-Layer speeds recovered from parallax.mov by mask-alignment over the window where every
-layer is on screen, at two independent scales:
+    python3 docs/examples/parallax/generate.py > docs/examples/parallax/index.html
 
-    orange hills   0.72x  (0.72 / 0.72)   <- reproduced
-    crimson hills  0.86x  (0.85 / 0.87)   <- reproduced
-    purple hills   1.00x  (0.97 / 1.00)   <- moves with the foreground
-    foreground     1.00x  (reference)
-    sky / far      NOT RECOVERABLE - a smooth gradient has no stable mask;
-                   estimates ranged -0.03..0.63 across methods.
+MEASURED from parallax.mov (1400x804, 60fps, 2.25s):
 
-Sky is pinned (0.00) and the far hills set to 0.30 -- both design choices inside the
-measurement's uncertainty, stated as such in the README.
+  Layer speeds, by mask alignment over the window where every layer is on screen,
+  run at two independent scales:
+      orange hills   0.72x  (0.72 / 0.72)
+      crimson hills  0.86x  (0.85 / 0.87)
+      purple hills   0.97x  (0.97 / 1.00)
+      foreground     1.00x  (reference)
+      sky / far      NOT RECOVERABLE (-0.03 .. 0.63 across methods; a smooth
+                     gradient has no stable colour mask)
 
-Same terrain, same depth stack, new palette.
+  Bridge: tracked directly -- the deck is the sharpest rigid feature in the clip.
+      0.80x +/- 0.04 against the two foreground tree apexes, consistent within noise
+      with the crimson hill it sits in, so it rides that layer.
+
+  Train: tail tracked across frames 96..124. Mean speed 1500 px/s, left -> right.
+      Per-4-frame estimates scatter 1080..1800 px/s with no clean trend, so constant
+      speed is within noise and no easing is claimed. Length ~708px, height ~58px,
+      riding on the deck at y=498.
+
+  Terrain: the four hill ridgelines are TRACED from the final frame, one y per column
+      (see ridges.json). Occluders -- trees, bushes -- always sit above the terrain and
+      pull a first-occurrence ridge upward, so the terrain is the upper quantile of the
+      raw trace, not its median.
+
+CHOSEN, not measured: the sky is pinned (0.00) and the gold hills set to 0.30, both inside
+the unrecoverable range. The train's repeat period (12s) is unobservable in a 2.25s clip.
+The ground line is derived from the purple ridge -- in the source it is almost entirely
+hidden behind foreground trees. Palette: a warm sunset became a cool dawn.
 """
-import math, sys
+import json, math, pathlib, sys
 
-W, HH = 1600, 900          # hero SVG viewBox
+W, H = 1400, 804
+R = json.load(open(pathlib.Path(__file__).resolve().parent / "ridges.json"))
 
-# --- palette: cool alpine dawn (source was a warm sunset) ---------------------
-SKY_TOP = "#EAF7F1"; SKY_MID = "#9BDCD0"; SKY_LOW = "#3AA3A8"
-SUN     = "#FFE0A3"
-FAR     = "#C6E9DF"        # was #FAE086 pale yellow
-MID     = "#6AC6BC"        # was #FC7541 orange
-DEEP    = "#2A7288"        # was #C9234C crimson
-NAVY    = "#1B4C66"        # was #5B0081 purple
-INK     = "#08192A"        # was #170433
-ACC1    = "#FFB347"
-ACC2    = "#F2603C"
+# --- palette: cool alpine dawn (the source was a warm sunset) -------------------
+SKY_TOP, SKY_MID, SKY_LOW = "#EAF7F1", "#A7DFD4", "#4FB0AF"
+SUN = "#FFE3AC"
+GOLD_A, GOLD_B = "#CFEBE0", "#A9DCD2"
+ORNG_A, ORNG_B = "#7FCCC2", "#5CB6AF"
+CRIM_A, CRIM_B = "#38869A", "#2A6E85"
+NAVY_A, NAVY_B = "#1E5570", "#173E56"
+INK = "#08192A"
+RAIL = "#F2603C"
+ACC1, ACC2 = "#FFB347", "#F2603C"
+TRAIN_ROOF, TRAIN_WIN, TRAIN_BODY = "#FFFFFF", "#12253A", "#FBE3B8"
 
-# measured / chosen layer speeds
-F_SKY, F_FAR, F_MID, F_DEEP, F_NEAR = 0.00, 0.30, 0.72, 0.86, 1.00
+F_SKY, F_GOLD, F_ORNG, F_CRIM, F_NAVY, F_INK = 0.00, 0.30, 0.72, 0.86, 0.97, 1.00
 
-
-def ridge(y0, amp, terms, phase, w=W, step=16):
-    """A smooth hill silhouette: a sum of sines, closed to the bottom of the box."""
-    pts = []
-    for x in range(0, w + step, step):
-        t = x / w
-        y = y0
-        for k, (a, f) in enumerate(terms):
-            y += a * amp * math.sin(2 * math.pi * (f * t + phase + 0.17 * k))
-        pts.append((x, y))
-    d = f"M0,{HH} L0,{pts[0][1]:.1f} "
-    # Catmull-ish: straight segments at 16px are smooth enough at this scale
-    d += " ".join(f"L{x},{y:.1f}" for x, y in pts[1:])
-    d += f" L{w},{HH} Z"
-    return d
+DECK_Y, DECK_T = 498, 36
+PIER_PITCH, ARCH_W = 194, 180
+BRIDGE_X0, BRIDGE_X1 = 116, 1300
+TRAIN_LEN, TRAIN_H = 708, 58
+TRAIN_PXS = 1500.0
+TRAIN_PERIOD = 12.0
 
 
-def fir(x, y, h, col, w=None):
-    w = w or h * 0.42
-    return (f'<path d="M{x},{y-h} L{x+w/2},{y} L{x-w/2},{y} Z" fill="{col}"/>'
-            f'<rect x="{x-1.5}" y="{y}" width="3" height="{h*0.12}" fill="{col}"/>')
+def ridge_path(name, step=8):
+    ys = R[name]
+    pts = [(x, ys[x]) for x in range(0, len(ys), step)]
+    if pts[-1][0] != len(ys) - 1:
+        pts.append((len(ys) - 1, ys[-1]))
+    d = f"M0,{H} L0,{pts[0][1]:.1f} " + " ".join(f"L{x},{y:.1f}" for x, y in pts[1:])
+    return d + f" L{W},{pts[-1][1]:.1f} L{W},{H} Z"
 
 
-def leaf_tree(x, y, h, col):
-    """The source's foreground tree: a pointed leaf shape with a centre vein."""
-    w = h * 0.52
-    return (f'<g>'
-            f'<rect x="{x-2.5}" y="{y-h*0.42}" width="5" height="{h*0.42}" fill="{col}"/>'
-            f'<path d="M{x},{y-h} C{x+w/2},{y-h*0.72} {x+w/2},{y-h*0.36} {x},{y-h*0.30} '
-            f'C{x-w/2},{y-h*0.36} {x-w/2},{y-h*0.72} {x},{y-h} Z" fill="{col}"/>'
-            f'<path d="M{x},{y-h*0.95} L{x},{y-h*0.32}" stroke="{INK}" stroke-opacity=".35" stroke-width="2"/>'
-            f'</g>')
+def grad(gid, a, b):
+    return (f'<linearGradient id="{gid}" x1="0" y1="0" x2="0" y2="1">'
+            f'<stop offset="0" stop-color="{a}"/><stop offset="1" stop-color="{b}"/></linearGradient>')
 
 
-def lollipop(x, y, h, col, cap):
-    return (f'<rect x="{x-2}" y="{y-h}" width="4" height="{h}" fill="{col}"/>'
-            f'<circle cx="{x}" cy="{y-h}" r="{h*0.22}" fill="{cap}"/>')
+def hill(name, gid, factor, a, b, extra=""):
+    return (f'<svg class="ly" style="--f:{factor}" viewBox="0 0 {W} {H}" '
+            f'preserveAspectRatio="xMidYMax slice" aria-hidden="true">'
+            f'<defs>{grad(gid, a, b)}</defs>'
+            f'<path d="{ridge_path(name)}" fill="url(#{gid})"/>{extra}</svg>')
 
 
-def tulip(x, y, s, col):
-    return (f'<g><rect x="{x-1.6}" y="{y-s*1.7}" width="3.2" height="{s*1.7}" fill="{col}"/>'
-            f'<path d="M{x-s*0.62},{y-s*1.7} L{x-s*0.62},{y-s*2.5} L{x},{y-s*2.0} '
-            f'L{x+s*0.62},{y-s*2.5} L{x+s*0.62},{y-s*1.7} Z" fill="{col}"/></g>')
-
-
-def bush(x, y, r, col):
-    return (f'<circle cx="{x-r*0.7}" cy="{y}" r="{r*0.72}" fill="{col}"/>'
-            f'<circle cx="{x+r*0.7}" cy="{y}" r="{r*0.66}" fill="{col}"/>'
-            f'<circle cx="{x}" cy="{y-r*0.35}" r="{r}" fill="{col}"/>')
-
-
-def viaduct(y, col, behind):
-    """A viaduct is a solid deck with arches *punched out of it* -- the hill behind shows
-    through the openings. Drawing the arches as filled shapes turns it into a row of blocks."""
-    deck_h, span, gap = 22, 132, 26
-    base = y + 150
-    parts = [f'<rect x="150" y="{y}" width="1300" height="{base-y}" fill="{col}"/>']
-    x = 176
-    while x + span < 1450:
-        r = span / 2
-        cy = y + deck_h + 54
-        parts.append(f'<path d="M{x},{base} L{x},{cy} A{r},{r} 0 0 1 {x+span},{cy} '
-                     f'L{x+span},{base} Z" fill="{behind}"/>')
-        x += span + gap
-    parts.append(f'<rect x="140" y="{y}" width="1320" height="{deck_h}" fill="{col}"/>')
+def bridge():
+    base = DECK_Y + 165
+    parts = [f'<rect x="{BRIDGE_X0}" y="{DECK_Y}" width="{BRIDGE_X1-BRIDGE_X0}" '
+             f'height="{base-DECK_Y}" fill="{INK}"/>']
+    x = BRIDGE_X0 + 14
+    while x + ARCH_W <= BRIDGE_X1 - 14:
+        r = ARCH_W / 2
+        top = DECK_Y + DECK_T + 30
+        parts.append(f'<path d="M{x},{base} L{x},{top} A{r},{r} 0 0 1 {x+ARCH_W},{top} '
+                     f'L{x+ARCH_W},{base} Z" fill="url(#gcrim)"/>')
+        x += PIER_PITCH
+    parts.append(f'<rect x="{BRIDGE_X0-16}" y="{DECK_Y}" width="{BRIDGE_X1-BRIDGE_X0+32}" '
+                 f'height="{DECK_T}" fill="{INK}"/>')
+    parts.append(f'<rect x="{BRIDGE_X0-16}" y="{DECK_Y-7}" width="{BRIDGE_X1-BRIDGE_X0+32}" '
+                 f'height="7" fill="{RAIL}"/>')
     return "".join(parts)
 
 
-# ---------------------------------------------------------------- layers
-sky = f'''<svg class="ly" style="--f:{F_SKY}" viewBox="0 0 {W} {HH}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="{SKY_TOP}"/><stop offset=".55" stop-color="{SKY_MID}"/>
-    <stop offset="1" stop-color="{SKY_LOW}"/></linearGradient>
-    <radialGradient id="glow"><stop offset="0" stop-color="{SUN}" stop-opacity=".95"/>
-    <stop offset="1" stop-color="{SUN}" stop-opacity="0"/></radialGradient></defs>
-  <rect width="{W}" height="{HH}" fill="url(#sky)"/>
-  <circle cx="800" cy="428" r="400" fill="url(#glow)"/>
-  <circle cx="800" cy="428" r="146" fill="{SUN}"/>
-</svg>'''
+def car(x, w, nose=False):
+    """A rounded car: white shell, navy window band with gold dividers, cream lower body."""
+    t = DECK_Y - TRAIN_H - 7
+    b = DECK_Y - 7
+    r = 16
+    if nose:
+        # travelling left -> right, so the swept nose is the leading (right) end
+        d = (f"M{x+r},{t} L{x+w-42},{t} L{x+w},{t+32} L{x+w},{b-r} "
+             f"A{r},{r} 0 0 1 {x+w-r},{b} L{x+r},{b} A{r},{r} 0 0 1 {x},{b-r} "
+             f"L{x},{t+r} A{r},{r} 0 0 1 {x+r},{t} Z")
+    else:
+        d = (f"M{x+r},{t} L{x+w-r},{t} A{r},{r} 0 0 1 {x+w},{t+r} L{x+w},{b-r} "
+             f"A{r},{r} 0 0 1 {x+w-r},{b} L{x+r},{b} A{r},{r} 0 0 1 {x},{b-r} "
+             f"L{x},{t+r} A{r},{r} 0 0 1 {x+r},{t} Z")
+    out = [f'<clipPath id="c{x}"><path d="{d}"/></clipPath>',
+           f'<path d="{d}" fill="{TRAIN_ROOF}"/>',
+           f'<g clip-path="url(#c{x})">',
+           f'<rect x="{x}" y="{t+13}" width="{w}" height="19" fill="{TRAIN_WIN}"/>',
+           f'<rect x="{x}" y="{t+32}" width="{w}" height="{b-t-32}" fill="{TRAIN_BODY}"/>']
+    for wx in range(x + 52, x + w - 22, 62):
+        out.append(f'<rect x="{wx}" y="{t+13}" width="4" height="19" fill="{ACC1}" opacity=".8"/>')
+    out.append("</g>")
+    return "".join(out)
 
-far_firs = "".join(fir(x, 432 + 26 * math.sin(x / 190.0), 26 + (x % 31) * 0.6, FAR)
-                   for x in range(30, W, 58))
-far = f'''<svg class="ly" style="--f:{F_FAR}" viewBox="0 0 {W} {HH}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-  <path d="{ridge(432, 58, [(1,1.1),(.45,2.3),(.2,4.1)], .12)}" fill="{FAR}"/>
-  {far_firs}
-</svg>'''
 
-mid = f'''<svg class="ly" style="--f:{F_MID}" viewBox="0 0 {W} {HH}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-  <path d="{ridge(520, 74, [(1,.9),(.4,2.1),(.22,3.7)], .55)}" fill="{MID}"/>
-</svg>'''
+def train():
+    return f'<g class="train" aria-hidden="true">{car(0,215)}{car(224,215)}{car(448,260,nose=True)}</g>'
 
-deep = f'''<svg class="ly" style="--f:{F_DEEP}" viewBox="0 0 {W} {HH}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-  <path d="{ridge(612, 64, [(1,.75),(.42,1.9),(.18,3.3)], .8)}" fill="{DEEP}"/>
-  {viaduct(636, INK, DEEP)}
-</svg>'''
 
-near_trees = "".join(
-    leaf_tree(x, 905, h, INK)
-    for x, h in [(58, 470), (168, 350), (262, 250),
-                 (1352, 262), (1452, 372), (1556, 486)])
-near_firs = (fir(1240, 905, 330, INK) + fir(1300, 905, 240, INK)
-             + fir(352, 905, 230, INK))
-near_bushes = "".join(bush(x, 905, r, INK) for x, r in
-                      [(430, 62), (600, 50), (760, 70), (930, 54), (1090, 66), (1180, 44)])
-near_tulips = "".join(tulip(x, 890, 19, ACC2 if i % 2 else ACC1)
-                      for i, x in enumerate(range(90, W - 60, 104)))
-near = f'''<svg class="ly" style="--f:{F_NEAR}" viewBox="0 0 {W} {HH}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-  <path d="{ridge(718, 50, [(1,.7),(.4,1.7)], .3)}" fill="{NAVY}"/>
-  <path d="{ridge(806, 34, [(1,.6),(.35,1.5)], .9)}" fill="{INK}"/>
-  {near_bushes}{near_trees}{near_firs}{near_tulips}
-</svg>'''
+def leaf_tree(x, y, h, col=INK):
+    w = h * 0.5
+    return (f'<rect x="{x-3}" y="{y-h*0.44}" width="6" height="{h*0.44}" fill="{col}"/>'
+            f'<path d="M{x},{y-h} C{x+w/2},{y-h*0.74} {x+w/2},{y-h*0.36} {x},{y-h*0.30} '
+            f'C{x-w/2},{y-h*0.36} {x-w/2},{y-h*0.74} {x},{y-h} Z" fill="{col}"/>'
+            f'<path d="M{x},{y-h*0.96} L{x},{y-h*0.32}" stroke="#16304a" stroke-width="2.5"/>')
 
-# forest band that crowns the next section, as in the source
+
+def fir(x, y, h, col=INK):
+    w = h * 0.4
+    return (f'<path d="M{x},{y-h} L{x+w/2},{y} L{x-w/2},{y} Z" fill="{col}"/>'
+            f'<rect x="{x-2}" y="{y-3}" width="4" height="{h*0.1}" fill="{col}"/>')
+
+
+def bush(x, y, r, col=INK):
+    return (f'<circle cx="{x-r*0.7}" cy="{y}" r="{r*0.7}" fill="{col}"/>'
+            f'<circle cx="{x+r*0.7}" cy="{y}" r="{r*0.64}" fill="{col}"/>'
+            f'<circle cx="{x}" cy="{y-r*0.34}" r="{r}" fill="{col}"/>')
+
+
+def tulip(x, y, s, col):
+    return (f'<rect x="{x-1.7}" y="{y-s*1.7}" width="3.4" height="{s*1.7}" fill="{col}"/>'
+            f'<path d="M{x-s*0.6},{y-s*1.7} L{x-s*0.6},{y-s*2.5} L{x},{y-s*2.0} '
+            f'L{x+s*0.6},{y-s*2.5} L{x+s*0.6},{y-s*1.7} Z" fill="{col}"/>')
+
+
+def gy(x):
+    i = max(0, min(len(R["ink"]) - 1, int(x)))
+    return R["ink"][i]
+
+
+fore = "".join([
+    "".join(bush(x, gy(x) + 26, r) for x, r in
+            [(300, 46), (470, 36), (660, 52), (830, 40), (1000, 48), (1150, 34)]),
+    "".join(leaf_tree(x, gy(x) + 40, h) for x, h in
+            [(44, 420), (140, 310), (232, 226), (1196, 236), (1290, 340), (1372, 448)]),
+    fir(1108, gy(1108) + 36, 300), fir(1058, gy(1058) + 36, 214), fir(322, gy(322) + 36, 208),
+    "".join(tulip(x, max(gy(x) + 34, 726), 17, ACC2 if i % 2 else ACC1)
+            for i, x in enumerate(range(80, W - 40, 96))),
+])
+
+sky = (f'<svg class="ly" style="--f:{F_SKY}" viewBox="0 0 {W} {H}" '
+       f'preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs>'
+       f'<radialGradient id="glow"><stop offset="0" stop-color="{SUN}" stop-opacity=".95"/>'
+       f'<stop offset="1" stop-color="{SUN}" stop-opacity="0"/></radialGradient>'
+       f'<linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1">'
+       f'<stop offset="0" stop-color="{SKY_TOP}"/><stop offset=".5" stop-color="{SKY_MID}"/>'
+       f'<stop offset="1" stop-color="{SKY_LOW}"/></linearGradient></defs>'
+       f'<rect width="{W}" height="{H}" fill="url(#gsky)"/>'
+       f'<circle cx="700" cy="240" r="330" fill="url(#glow)"/>'
+       f'<circle cx="700" cy="240" r="118" fill="{SUN}"/></svg>')
+
+gold = hill("gold", "ggold", F_GOLD, GOLD_A, GOLD_B,
+            "".join(fir(x, R["gold"][x] + 9, 24 + (x % 29) * 0.5, GOLD_B) for x in range(24, W, 57)))
+orng = hill("orange", "gorng", F_ORNG, ORNG_A, ORNG_B)
+crim = (f'<svg class="ly" style="--f:{F_CRIM}" viewBox="0 0 {W} {H}" '
+        f'preserveAspectRatio="xMidYMax slice" aria-hidden="true">'
+        f'<defs>{grad("gcrim", CRIM_A, CRIM_B)}</defs>'
+        f'<path d="{ridge_path("crimson")}" fill="url(#gcrim)"/>{bridge()}{train()}</svg>')
+navy = hill("purple", "gnavy", F_NAVY, NAVY_A, NAVY_B)
+near = (f'<svg class="ly" style="--f:{F_INK}" viewBox="0 0 {W} {H}" '
+        f'preserveAspectRatio="xMidYMax slice" aria-hidden="true">'
+        f'<path d="{ridge_path("ink")}" fill="{INK}"/>{fore}</svg>')
+
 BH = 270
-band_trees = "".join(leaf_tree(x, BH-4, 175 + (x % 61), INK) for x in range(46, W, 168))
-# lollipops last, so their heads aren't chewed by the trees
-band_pops = "".join(lollipop(x, BH-4, 118 + (x % 47), NAVY, ACC1 if i % 2 else ACC2)
-                    for i, x in enumerate(range(112, W, 152)))
-band_hill = ' '.join(f'L{x},{150+26*math.sin(x/165.0):.1f}' for x in range(0, W+20, 20))
-band = f'''<svg class="band" viewBox="0 0 {W} {BH}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-  <path d="M0,{BH} L0,150 {band_hill} L{W},{BH} Z" fill="{NAVY}"/>
-  {band_trees}{band_pops}
-</svg>'''
+band_trees = "".join(leaf_tree(x, BH - 4, 175 + (x % 61)) for x in range(46, W, 168))
+band_pops = "".join(
+    f'<rect x="{x-2}" y="{BH-4-h}" width="4" height="{h}" fill="{NAVY_A}"/>'
+    f'<circle cx="{x}" cy="{BH-4-h}" r="{h*0.2}" fill="{ACC1 if i%2 else ACC2}"/>'
+    for i, (x, h) in enumerate((x, 118 + (x % 47)) for x in range(112, W, 152)))
+band_hill = " ".join(f"L{x},{150+26*math.sin(x/165.0):.1f}" for x in range(0, W + 20, 20))
+band = (f'<svg class="band" viewBox="0 0 {W} {BH}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">'
+        f'<path d="M0,{BH} L0,150 {band_hill} L{W},{BH} Z" fill="{NAVY_A}"/>{band_trees}{band_pops}</svg>')
+
+cross_pct = round((W + TRAIN_LEN) / TRAIN_PXS / TRAIN_PERIOD * 100, 2)
 
 HTML = f'''<!doctype html>
 <html lang="en">
@@ -164,73 +210,72 @@ HTML = f'''<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beyond Limits — a parallax landscape, recreated with motiscope</title>
-<meta name="description" content="A scroll-driven parallax landscape recreated from a 2.25s screen recording. Same terrain, same depth stack, measured layer speeds, new palette.">
+<meta name="description" content="A scroll-driven parallax landscape recreated from a 2.25s screen recording. Traced terrain, measured layer speeds, and a train crossing the viaduct at a measured 1500 px/s.">
 <meta property="og:site_name" content="motiscope">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Beyond Limits — a parallax landscape, recreated with motiscope">
-<meta property="og:description" content="Five layers, one scroll. motiscope measured how much slower each ridge drifts — 0.72x and 0.86x, reproduced at two scales — and this page was rebuilt from those numbers.">
+<meta property="og:description" content="Six depth layers and a train. The ridgelines are traced from the recording and the layer speeds are measured. The sky, honestly, is not recoverable.">
 <meta property="og:url" content="https://kumarsashank.github.io/motiscope/examples/parallax/">
 <meta property="og:image" content="https://kumarsashank.github.io/motiscope/og/parallax.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A layered sunrise landscape with hills, a viaduct and dark foreground trees.">
+<meta property="og:image:alt" content="A layered dawn landscape: hills, a viaduct with a train crossing it, and dark foreground trees.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Beyond Limits — a parallax landscape, recreated with motiscope">
-<meta name="twitter:description" content="Five layers, one scroll. Measured layer speeds, rebuilt as a scroll-driven page.">
+<meta name="twitter:description" content="Traced terrain, measured layer speeds, and a train at a measured 1500 px/s.">
 <meta name="twitter:image" content="https://kumarsashank.github.io/motiscope/og/parallax.png">
-<meta name="twitter:image:alt" content="A layered sunrise landscape with hills, a viaduct and dark foreground trees.">
+<meta name="twitter:image:alt" content="A layered dawn landscape: hills, a viaduct with a train crossing it, and dark foreground trees.">
 <link rel="canonical" href="https://kumarsashank.github.io/motiscope/examples/parallax/">
 <style>
-  :root {{
-    --ink:{INK}; --navy:{NAVY}; --deep:{DEEP}; --mid:{MID}; --far:{FAR};
-    --acc1:{ACC1}; --acc2:{ACC2}; --paper:#EAF7F1;
-    --s: 0px;                      /* scrollY, written by the rAF loop below */
-  }}
+  :root {{ --ink:{INK}; --paper:#EAF7F1; --acc1:{ACC1}; --s:0px; }}
   * {{ box-sizing:border-box; margin:0; }}
   html {{ scroll-behavior:smooth; }}
   body {{ background:var(--ink); color:var(--paper); overflow-x:hidden;
          font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }}
 
-  /* ---- the hero: every layer is a full-bleed SVG translated by scroll x (1 - f) ---- */
   .hero {{ position:relative; height:100vh; min-height:560px; overflow:hidden; }}
   .ly {{ position:absolute; inset:0; width:100%; height:100%; display:block;
-         transform: translate3d(0, calc(var(--s) * (1 - var(--f))), 0);
-         will-change: transform; }}
-  .hero-copy {{ position:absolute; inset:0; display:grid; place-content:center;
-      text-align:center; z-index:5; padding:0 24px;
-      transform: translate3d(0, calc(var(--s) * -0.35), 0);
-      opacity: clamp(0, calc(1 - var(--s) / 420), 1); }}
-  .kicker {{ font:600 15px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-      letter-spacing:.42em; text-transform:uppercase; color:var(--ink); opacity:.72; }}
+         transform:translate3d(0, calc(var(--s) * (1 - var(--f))), 0); will-change:transform; }}
+
+  /* The train: {TRAIN_PXS:.0f} px/s measured. It covers {W}+{TRAIN_LEN} user units in
+     {(W+TRAIN_LEN)/TRAIN_PXS:.2f}s, which is {cross_pct}% of the chosen {TRAIN_PERIOD:.0f}s period.
+     The period is a design choice -- a 2.25s clip cannot show how often it passes. */
+  .train {{ transform-box:view-box; animation:ride {TRAIN_PERIOD}s linear infinite; }}
+  @keyframes ride {{
+    0%           {{ transform:translateX(-{TRAIN_LEN}px); }}
+    {cross_pct}% {{ transform:translateX({W}px); }}
+    100%         {{ transform:translateX({W}px); }}
+  }}
+
+  .hero-copy {{ position:absolute; inset:0; display:grid; place-content:start center; text-align:center;
+      z-index:5; padding:16vh 24px 0; transform:translate3d(0, calc(var(--s) * -0.35), 0);
+      opacity:clamp(0, calc(1 - var(--s) / 420), 1); }}
+  .kicker {{ font:600 15px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.42em;
+      text-transform:uppercase; color:var(--ink); opacity:.72; }}
   .hero-copy h1 {{ margin:20px 0 0; font-size:clamp(44px,8.5vw,104px); line-height:.95;
-      letter-spacing:-.03em; font-weight:800; color:var(--navy);
-      text-shadow:0 2px 0 rgba(255,255,255,.16); }}
+      letter-spacing:-.03em; font-weight:800; color:#17405A; text-shadow:0 2px 0 rgba(255,255,255,.18); }}
   .scrollcue {{ position:absolute; left:50%; bottom:64px; z-index:6; translate:-50% 0;
       font:12px/1 ui-monospace,monospace; letter-spacing:.28em; text-transform:uppercase;
       color:var(--paper); opacity:.7; animation:bob 2.4s ease-in-out infinite; }}
   @keyframes bob {{ 50% {{ transform:translateY(7px); }} }}
 
-  /* ---- the section the source scrolls down into ---- */
   .band {{ display:block; width:100%; height:270px; margin-bottom:-2px; }}
-  .prose {{ background:var(--ink); padding:26px 24px 120px; }}
+  .prose {{ background:var(--ink); padding:26px 24px 110px; }}
   .prose .in {{ max-width:760px; margin:0 auto; text-align:center; }}
-  .rule {{ width:170px; height:2px; background:var(--paper); opacity:.55; margin:0 auto 26px; }}
+  .rule {{ width:170px; height:2px; background:var(--paper); opacity:.5; margin:0 auto 26px; }}
   .rule.b {{ margin:26px auto 0; width:118px; }}
   .prose h2 {{ font-size:clamp(26px,4vw,40px); letter-spacing:-.02em; font-weight:700; }}
   .prose p {{ margin-top:34px; color:#9FC3C0; font-size:17px; }}
-
-  .cards {{ background:var(--ink); padding:0 24px 120px; }}
-  .cards .in {{ max-width:960px; margin:0 auto; display:grid; gap:18px;
-                grid-template-columns:repeat(3,1fr); }}
-  @media (max-width:760px) {{ .cards .in {{ grid-template-columns:1fr; }} }}
-  .card {{ background:#0D2437; border:1px solid #17405A; border-radius:14px; padding:22px; }}
-  .card h3 {{ font-size:16px; margin-bottom:8px; }}
-  .card p {{ color:#8FB6B4; font-size:14px; }}
+  .cards {{ background:var(--ink); padding:0 24px 110px; }}
+  .cards .in {{ max-width:1000px; margin:0 auto; display:grid; gap:16px; grid-template-columns:repeat(4,1fr); }}
+  @media (max-width:860px) {{ .cards .in {{ grid-template-columns:1fr 1fr; }} }}
+  .card {{ background:#0D2437; border:1px solid #17405A; border-radius:14px; padding:20px; }}
+  .card h3 {{ font-size:15px; margin-bottom:8px; }}
+  .card p {{ color:#8FB6B4; font-size:13.5px; }}
   .card b {{ color:var(--acc1); font:600 13px ui-monospace,monospace; }}
-
-  footer {{ background:#061421; border-top:1px solid #143348; padding:28px 24px;
-    color:#7EA3A6; font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; text-align:center; }}
+  footer {{ background:#061421; border-top:1px solid #143348; padding:28px 24px; color:#7EA3A6;
+    font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; text-align:center; }}
   footer a {{ color:var(--acc1); }}
 
   @media (prefers-reduced-motion: reduce) {{
@@ -238,17 +283,15 @@ HTML = f'''<!doctype html>
     .ly, .hero-copy {{ transform:none !important; }}
     .hero-copy {{ opacity:1 !important; }}
     .scrollcue {{ animation:none; }}
+    /* park the train mid-span rather than leaving it frozen off-screen */
+    .train {{ animation:none; transform:translateX(300px); }}
   }}
 </style>
 </head>
 <body>
 
 <header class="hero">
-  {sky}
-  {far}
-  {mid}
-  {deep}
-  {near}
+  {sky}{gold}{orng}{crim}{navy}{near}
   <div class="hero-copy">
     <div class="kicker">Creative animation journey</div>
     <h1>Beyond Limits</h1>
@@ -262,39 +305,39 @@ HTML = f'''<!doctype html>
     <div class="rule"></div>
     <h2>Bring your design to the next level</h2>
     <div class="rule b"></div>
-    <p>Five layers, one scroll. The hills behind you drift slower than the trees beside you,
-      and that difference is the whole illusion of depth. motiscope measured how much slower —
-      then this page was rebuilt from those numbers.</p>
+    <p>Six layers, one scroll, and a train. The hills behind you drift slower than the trees
+      beside you, and that difference is the whole illusion of depth. Every ridgeline here was
+      traced out of a 2.25-second recording; every speed below was measured from it.</p>
   </div>
 </section>
 
 <section class="cards">
   <div class="in">
     <div class="card"><b>0.72&times;</b><h3>Mid hills</h3>
-      <p>Measured by mask alignment, and reproduced at two independent scales.</p></div>
-    <div class="card"><b>0.86&times;</b><h3>Deep hills &amp; viaduct</h3>
-      <p>0.85&times; and 0.87&times; from two runs. The bridge rides this layer.</p></div>
-    <div class="card"><b>1.00&times;</b><h3>Foreground</h3>
-      <p>Trees, bushes and tulips travel with the page. The reference layer.</p></div>
+      <p>Mask alignment, reproduced at two independent scales.</p></div>
+    <div class="card"><b>0.86&times;</b><h3>Deep hills</h3>
+      <p>0.85&times; and 0.87&times; from two runs. The viaduct rides this layer.</p></div>
+    <div class="card"><b>1500 px/s</b><h3>The train</h3>
+      <p>Tail tracked across 28 frames. Left to right, constant within noise.</p></div>
+    <div class="card"><b>not recoverable</b><h3>The sky</h3>
+      <p>A smooth gradient has no stable mask. Estimates ran &minus;0.03 to 0.63, so we don&rsquo;t claim one.</p></div>
   </div>
 </section>
 
 <footer>
   Recreated with <a href="https://github.com/KumarSashank/motiscope">motiscope</a> from a 2.25s screen recording.
-  Same terrain, same depth stack, new palette.<br>
+  Traced terrain, measured speeds, new palette.<br>
   Original animation from <a href="https://www.svgator.com/blog/website-animation-examples-and-effects/">SVGator&rsquo;s website-animation examples</a> — all credit to the original creator.
 </footer>
 
 <script>
-  // One rAF-coalesced scroll write. CSS does the rest via translate3d(0, s*(1-f), 0).
+  // One rAF-coalesced scroll write. CSS does the rest: translate3d(0, s*(1-f), 0).
   (function () {{
     var root = document.documentElement, ticking = false;
-    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     function apply(y) {{ root.style.setProperty('--s', y + 'px'); }}
-    // #s=600 renders a fixed scroll state -- used to screenshot the page for verification
-    var m = location.hash.match(/^#s=(\\d+)/);
+    var m = location.hash.match(/^#s=(\\d+)/);      // #s=600 freezes a scroll state (for verification)
     if (m) {{ apply(+m[1]); return; }}
-    if (reduce) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     addEventListener('scroll', function () {{
       if (ticking) return;
       ticking = true;
@@ -306,5 +349,4 @@ HTML = f'''<!doctype html>
 </body>
 </html>
 '''
-
 sys.stdout.write(HTML)
