@@ -33,9 +33,11 @@ A Claude Code plugin dedicated to motion design. Pure Python (standard library) 
 
 ## Demo — original → recreated
 
-| Original (recorded from the web) | Recreated with motiscope |
-|:--:|:--:|
-| <img src="docs/examples/banana/source-tomato.gif" width="340" alt="original tomato character animation"> | <img src="docs/examples/banana/banana-loop.svg" width="340" alt="banana character recreated with motiscope"> |
+<p align="center">
+  <img src="docs/examples/banana/compare.gif" width="100%" alt="Left: the original tomato animation. Right: the banana recreated with motiscope — both playing the same beats in sync.">
+</p>
+
+<p align="center"><sub><b>Left:</b> the original. &nbsp;<b>Right:</b> recreated with motiscope. &nbsp;<i>(one clip, so the beats stay in sync)</i></sub></p>
 
 motiscope measured the **motion** of the tomato — a 4.45s clock, the wake-and-wave beats,
 and the easing curve of each. The **banana is an original character** built on that
