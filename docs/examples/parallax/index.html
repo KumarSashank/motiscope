@@ -32,15 +32,12 @@
   .ly { position:absolute; inset:0; width:100%; height:100%; display:block;
          transform:translate3d(0, calc(var(--s) * (1 - var(--f))), 0); will-change:transform; }
 
-  /* The train: 1500 px/s measured. It covers 1400+708 user units in
-     1.41s, which is 11.71% of the chosen 12s period.
-     The period is a design choice -- a 2.25s clip cannot show how often it passes. */
-  .train { transform-box:view-box; animation:ride 12.0s linear infinite; }
-  @keyframes ride {
-    0%           { transform:translateX(-708px); }
-    11.71% { transform:translateX(1400px); }
-    100%         { transform:translateX(1400px); }
-  }
+  /* The train is bound to the scroll, not to a clock.
+     In the recording the train ran at 1500 px/s while the page scrolled at
+     419 px/s, so it covers 3.58 units for every pixel you scroll.
+     Scroll down -> it runs left to right. Scroll back up -> it reverses. */
+  .train { transform-box:view-box;
+            transform:translateX(calc(-60px + var(--s) * 3.58)); }
 
   .hero-copy { position:absolute; inset:0; display:grid; place-content:start center; text-align:center;
       z-index:5; padding:16vh 24px 0; transform:translate3d(0, calc(var(--s) * -0.35), 0);
@@ -77,8 +74,8 @@
     .ly, .hero-copy { transform:none !important; }
     .hero-copy { opacity:1 !important; }
     .scrollcue { animation:none; }
-    /* park the train mid-span rather than leaving it frozen off-screen */
-    .train { animation:none; transform:translateX(300px); }
+    /* --s never advances, so the train simply rests on the bridge */
+    .train { transform:translateX(-60px); }
   }
 </style>
 </head>
@@ -101,7 +98,8 @@
     <div class="rule b"></div>
     <p>Six layers, one scroll, and a train. The hills behind you drift slower than the trees
       beside you, and that difference is the whole illusion of depth. Every ridgeline here was
-      traced out of a 2.25-second recording; every speed below was measured from it.</p>
+      traced out of a 2.25-second recording; every speed below was measured from it. Scroll back
+      up and the train reverses — it is a function of where you are, not of what time it is.</p>
   </div>
 </section>
 
@@ -111,8 +109,8 @@
       <p>Mask alignment, reproduced at two independent scales.</p></div>
     <div class="card"><b>0.86&times;</b><h3>Deep hills</h3>
       <p>0.85&times; and 0.87&times; from two runs. The viaduct rides this layer.</p></div>
-    <div class="card"><b>1500 px/s</b><h3>The train</h3>
-      <p>Tail tracked across 28 frames. Left to right, constant within noise.</p></div>
+    <div class="card"><b>3.58 &times; scroll</b><h3>The train</h3>
+      <p>1501&nbsp;px/s train against 419&nbsp;px/s scroll in the recording. Here it is bound to your scroll, so it runs left&nbsp;&rarr;&nbsp;right as you go down.</p></div>
     <div class="card"><b>not recoverable</b><h3>The sky</h3>
       <p>A smooth gradient has no stable mask. Estimates ran &minus;0.03 to 0.63, so we don&rsquo;t claim one.</p></div>
   </div>

@@ -11,10 +11,14 @@ All notable changes to motiscope are documented here. The format follows
   screen recording as one self-contained page: **traced** SVG ridgelines, ~20 lines of JS,
   `prefers-reduced-motion` honoured. Live at `docs/examples/parallax/`.
   - **One clip, two clocks.** The parallax is scroll-driven, so the clip's seconds belong to
-    whoever scrolled. The **train is time-driven**: its speed is a property of the animation,
-    measured at **1500 px/s** by tracking its *tail* (the nose is hidden behind a foreground
-    tree for the whole clip; tracking it would have reported 16 px/s). Its repeat period is
-    *not* observable from one pass, so 12s is a design choice.
+    whoever scrolled. The train, in the source, is **time-driven**: its speed is a property of
+    the animation, measured at **1501 px/s** by tracking its *tail* (the nose is hidden behind a
+    foreground tree for the whole clip; tracking it would have reported 16 px/s).
+  - **The train is bound to scroll here**, a deliberate departure from the source. The constant
+    is measured, not invented: during the recording the train ran at 1501 px/s while the page
+    scrolled at 419 px/s, so it travels **3.58 units per pixel of scroll**. Scroll down, it runs
+    left→right; scroll up, it reverses. It has no animation at all — its position is a pure
+    function of scroll, so the unobservable "repeat period" question disappears.
   - **Terrain traced**, one `y` per column per layer (`ridges.json`). Occluders always sit
     above the terrain, so a ridge is the *upper quantile* of the raw trace, not its median —
     a median still follows a tree crown spanning 200 columns.

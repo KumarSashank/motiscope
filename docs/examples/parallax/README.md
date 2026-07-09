@@ -20,15 +20,30 @@ A parallax is **scroll-driven**. The timing motiscope reports for this clip — 
 then 1.45s of motion — describes *the person who did the scrolling*, not the design. Replay
 those seconds and you recreate the recording, not the website.
 
-But the **train is time-driven**. Its speed is a property of the animation, and it survives
-however fast you happened to scroll. So this one clip contains two different kinds of number:
+The **train, in the source, is time-driven**: it runs on a clock at a speed that survives
+however fast you happened to scroll. So one clip carries two different kinds of number:
 
 | Quantity | Kind | Recoverable? |
 |---|---|---|
 | Layer speed **ratios** | scroll-intrinsic | yes, for four of six layers |
-| Train speed | time-intrinsic | yes — **1500 px/s** |
+| Train speed | time-intrinsic | yes — **1501 px/s** |
 | Scroll duration / hold | the recorder's | meaningless for the design |
 | Train repeat period | time-intrinsic | **no** — one pass in 2.25s tells you nothing |
+
+**Here the train is bound to the scroll instead.** That is a deliberate departure from the
+source: scroll down and it runs left → right; scroll back up and it reverses. It is a function
+of *where you are*, not of *what time it is*, so it can never be missed and never loops
+awkwardly on a page nobody is looking at.
+
+The constant is not invented. During the recording the train covered **1501 px/s** while the
+page scrolled at **419 px/s** — so it travels **3.58 units for every pixel you scroll**:
+
+```css
+.train { transform: translateX(calc(-60px + var(--s) * 3.58)); }
+```
+
+The ratio is measured; the *binding* is the design decision. Crossing the viewport takes
+~589px of scroll.
 
 ## Layer speeds
 
@@ -85,7 +100,9 @@ tree — a clamped nose would have reported a speed of 16 px/s instead of 1500.
 | Property | Value |
 |---|---|
 | Direction | left → right (nose leading) |
-| Speed | **1500 px/s** (tail, frames 96–124) |
+| Speed in the source | **1501 px/s** (tail, frames 96–124) |
+| Scroll speed in the source | **419 px/s** (both tree apexes) |
+| Bound here as | **3.58 units of train per pixel of scroll** |
 | Length | ~708 px |
 | Height | ~58 px, riding the deck at `y=498` |
 | Easing | **none claimed** |
@@ -94,8 +111,8 @@ Per-4-frame velocity estimates scatter from 1080 to 1800 px/s with no clean tren
 measurement noise from car gaps breaking the colour run, not an ease. Constant speed is within
 noise, so the recreation uses `linear`.
 
-The **repeat period is not observable**: the clip shows exactly one pass. The page uses a 12s
-period, which is a design choice; the *speed within* each pass is the measured one.
+The **repeat period is not observable**: the clip shows exactly one pass. That question
+disappears entirely once the train is bound to scroll — there is no period, only position.
 
 ## Terrain: traced, not approximated
 
@@ -116,13 +133,13 @@ Probed in a real browser: scroll to 300px, then read each layer's on-screen posi
 layer's on-screen speed relative to the page **is** its parallax factor.
 
 ```
-scrollY=300
-set_f=0.00  implied_f=0.000     TRAIN dur=12s timing=linear iter=infinite
-set_f=0.30  implied_f=0.300     train bbox w=708 h=58 y=433
-set_f=0.72  implied_f=0.720     train parent layer f=0.86
-set_f=0.86  implied_f=0.860
-set_f=0.97  implied_f=0.970     crossing 1400+708 units in 1.405s = 1500 u/s
-set_f=1.00  implied_f=1.000
+scrollY=300                     train: animation-name = none (it is pure geometry)
+set_f=0.00  implied_f=0.000     s=0    translateX = -60.0
+set_f=0.30  implied_f=0.300     s=100  translateX = 298.0     ( -60 + 3.58*100 )
+set_f=0.72  implied_f=0.720     s=300  translateX = 1014.0    ( -60 + 3.58*300 )
+set_f=0.86  implied_f=0.860     s=589  translateX = 2048.6    (fully across)
+set_f=0.97  implied_f=0.970
+set_f=1.00  implied_f=1.000     scrolling 300 -> 100: dx = -716.0  (it reverses)
 ```
 
 ## How it's built
@@ -137,11 +154,12 @@ One CSS declaration does the parallax:
 translates down exactly as fast as the page scrolls up, so it is pinned. A layer at `f = 1`
 doesn't translate at all, so it rides the page. Everything between is parallax.
 
-The train is a plain CSS keyframe on a `<g>` inside the deep-hills SVG, so it inherits that
-layer's parallax for free and only needs its own horizontal motion.
+The train is a `<g>` inside the deep-hills SVG, so it inherits that layer's vertical parallax
+for free and only needs its own horizontal term. It has **no animation at all** — its position
+is a pure function of `--s`, which is why it reverses when you scroll back up.
 
-Under `prefers-reduced-motion: reduce` the transforms are dropped and the train is **parked
-mid-span** rather than frozen off-screen — a still, correct illustration.
+Under `prefers-reduced-motion: reduce` the transforms are dropped, `--s` never advances, and the
+train simply rests on the bridge — a still, correct illustration.
 
 ## Only the palette changed
 
@@ -160,7 +178,8 @@ depth order are the source's.
 ## What's still approximate
 
 - **Sky and far-hill speeds are chosen**, as above.
-- **The train's repeat period is chosen** (12s).
+- **Binding the train to scroll is a departure from the source**, where it runs on a clock.
+  The 3.58 ratio it uses is measured; the binding is a choice.
 - **The ground line is derived**, not traced.
 - **Trees, bushes, tulips and the train's car divisions are our own drawings**, positioned to
   match the source. Only the terrain is traced.

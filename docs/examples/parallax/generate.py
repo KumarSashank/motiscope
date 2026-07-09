@@ -18,10 +18,13 @@ MEASURED from parallax.mov (1400x804, 60fps, 2.25s):
       0.80x +/- 0.04 against the two foreground tree apexes, consistent within noise
       with the crimson hill it sits in, so it rides that layer.
 
-  Train: tail tracked across frames 96..124. Mean speed 1500 px/s, left -> right.
-      Per-4-frame estimates scatter 1080..1800 px/s with no clean trend, so constant
-      speed is within noise and no easing is claimed. Length ~708px, height ~58px,
-      riding on the deck at y=498.
+  Train: tail tracked across frames 96..124 (the nose is hidden behind a foreground tree
+      for the whole clip and would report 16 px/s). 1501 px/s, left -> right, length ~708px,
+      height ~58px, riding the deck at y=498. Per-4-frame estimates scatter 1080..1800 px/s
+      with no trend, so constant speed is within noise and no easing is claimed.
+      In the source the train is TIME-driven. Here it is bound to the SCROLL: during the
+      recording it covered 1501/419 = 3.58 units for every pixel the page scrolled, and that
+      ratio is what drives it now. Scroll down, it runs left->right; scroll up, it reverses.
 
   Terrain: the four hill ridgelines are TRACED from the final frame, one y per column
       (see ridges.json). Occluders -- trees, bushes -- always sit above the terrain and
@@ -29,7 +32,8 @@ MEASURED from parallax.mov (1400x804, 60fps, 2.25s):
       raw trace, not its median.
 
 CHOSEN, not measured: the sky is pinned (0.00) and the gold hills set to 0.30, both inside
-the unrecoverable range. The train's repeat period (12s) is unobservable in a 2.25s clip.
+the unrecoverable range. Binding the train to scroll is a deliberate departure from the source
+(there it runs on a clock); the 3.58 ratio is measured, the binding is a design decision.
 The ground line is derived from the purple ridge -- in the source it is almost entirely
 hidden behind foreground trees. Palette: a warm sunset became a cool dawn.
 """
@@ -56,8 +60,10 @@ DECK_Y, DECK_T = 498, 36
 PIER_PITCH, ARCH_W = 194, 180
 BRIDGE_X0, BRIDGE_X1 = 116, 1300
 TRAIN_LEN, TRAIN_H = 708, 58
-TRAIN_PXS = 1500.0
-TRAIN_PERIOD = 12.0
+TRAIN_PXS = 1500.0          # measured: 1501 px/s (tail, frames 96..124)
+SCROLL_PXS = 419.0          # measured: the recorder's scroll speed (both tree apexes)
+TRAIN_PER_SCROLL = round(TRAIN_PXS / SCROLL_PXS, 2)   # 3.58 units of train per px of scroll
+TRAIN_X0 = -60              # resting offset, so the train sits on the bridge at scrollY=0
 
 
 def ridge_path(name, step=8):
@@ -202,8 +208,6 @@ band_hill = " ".join(f"L{x},{150+26*math.sin(x/165.0):.1f}" for x in range(0, W 
 band = (f'<svg class="band" viewBox="0 0 {W} {BH}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">'
         f'<path d="M0,{BH} L0,150 {band_hill} L{W},{BH} Z" fill="{NAVY_A}"/>{band_trees}{band_pops}</svg>')
 
-cross_pct = round((W + TRAIN_LEN) / TRAIN_PXS / TRAIN_PERIOD * 100, 2)
-
 HTML = f'''<!doctype html>
 <html lang="en">
 <head>
@@ -238,15 +242,12 @@ HTML = f'''<!doctype html>
   .ly {{ position:absolute; inset:0; width:100%; height:100%; display:block;
          transform:translate3d(0, calc(var(--s) * (1 - var(--f))), 0); will-change:transform; }}
 
-  /* The train: {TRAIN_PXS:.0f} px/s measured. It covers {W}+{TRAIN_LEN} user units in
-     {(W+TRAIN_LEN)/TRAIN_PXS:.2f}s, which is {cross_pct}% of the chosen {TRAIN_PERIOD:.0f}s period.
-     The period is a design choice -- a 2.25s clip cannot show how often it passes. */
-  .train {{ transform-box:view-box; animation:ride {TRAIN_PERIOD}s linear infinite; }}
-  @keyframes ride {{
-    0%           {{ transform:translateX(-{TRAIN_LEN}px); }}
-    {cross_pct}% {{ transform:translateX({W}px); }}
-    100%         {{ transform:translateX({W}px); }}
-  }}
+  /* The train is bound to the scroll, not to a clock.
+     In the recording the train ran at {TRAIN_PXS:.0f} px/s while the page scrolled at
+     {SCROLL_PXS:.0f} px/s, so it covers {TRAIN_PER_SCROLL} units for every pixel you scroll.
+     Scroll down -> it runs left to right. Scroll back up -> it reverses. */
+  .train {{ transform-box:view-box;
+            transform:translateX(calc({TRAIN_X0}px + var(--s) * {TRAIN_PER_SCROLL})); }}
 
   .hero-copy {{ position:absolute; inset:0; display:grid; place-content:start center; text-align:center;
       z-index:5; padding:16vh 24px 0; transform:translate3d(0, calc(var(--s) * -0.35), 0);
@@ -283,8 +284,8 @@ HTML = f'''<!doctype html>
     .ly, .hero-copy {{ transform:none !important; }}
     .hero-copy {{ opacity:1 !important; }}
     .scrollcue {{ animation:none; }}
-    /* park the train mid-span rather than leaving it frozen off-screen */
-    .train {{ animation:none; transform:translateX(300px); }}
+    /* --s never advances, so the train simply rests on the bridge */
+    .train {{ transform:translateX({TRAIN_X0}px); }}
   }}
 </style>
 </head>
@@ -307,7 +308,8 @@ HTML = f'''<!doctype html>
     <div class="rule b"></div>
     <p>Six layers, one scroll, and a train. The hills behind you drift slower than the trees
       beside you, and that difference is the whole illusion of depth. Every ridgeline here was
-      traced out of a 2.25-second recording; every speed below was measured from it.</p>
+      traced out of a 2.25-second recording; every speed below was measured from it. Scroll back
+      up and the train reverses — it is a function of where you are, not of what time it is.</p>
   </div>
 </section>
 
@@ -317,8 +319,8 @@ HTML = f'''<!doctype html>
       <p>Mask alignment, reproduced at two independent scales.</p></div>
     <div class="card"><b>0.86&times;</b><h3>Deep hills</h3>
       <p>0.85&times; and 0.87&times; from two runs. The viaduct rides this layer.</p></div>
-    <div class="card"><b>1500 px/s</b><h3>The train</h3>
-      <p>Tail tracked across 28 frames. Left to right, constant within noise.</p></div>
+    <div class="card"><b>3.58 &times; scroll</b><h3>The train</h3>
+      <p>1501&nbsp;px/s train against 419&nbsp;px/s scroll in the recording. Here it is bound to your scroll, so it runs left&nbsp;&rarr;&nbsp;right as you go down.</p></div>
     <div class="card"><b>not recoverable</b><h3>The sky</h3>
       <p>A smooth gradient has no stable mask. Estimates ran &minus;0.03 to 0.63, so we don&rsquo;t claim one.</p></div>
   </div>
