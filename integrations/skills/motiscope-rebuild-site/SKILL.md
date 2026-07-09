@@ -1,12 +1,30 @@
 ---
-name: rebuild-site
-description: Rebuild a whole landing page / multi-section website from a screen recording that scrolls or walks through it. Use when the user has a recording of an ENTIRE page (not a single animation) and wants the full page recreated — layout, sections, copy, design system, and scroll animations. Orchestrates analyze (measured timing + section structure + curated frames) + asset generation + a full multi-section build. For one isolated animation, use /motiscope:recreate instead.
-argument-hint: "[path-to-video] [gsap|css|framer]"
-allowed-tools: Bash, Read, Write, Edit, AskUserQuestion
-user-invocable: true
+name: motiscope-rebuild-site
+description: 'Rebuild a whole landing page / multi-section website from a screen recording that scrolls or walks through it. Use when the user has a recording of an ENTIRE page (not a single animation) and wants the full page recreated — layout, sections, copy, design system, and scroll animations. Orchestrates analyze (measured timing + section structure + curated frames) + asset generation + a full multi-section build. For one isolated animation, use `motiscope-recreate` instead.'
 ---
 
 # motiscope: rebuild-site
+
+> Rebuild a whole landing page / multi-section website from a screen recording that scrolls or walks through it. Use when the user has a recording of an ENTIRE page (not a single animation) and wants the full page recreated — layout, sections, copy, design system, and scroll animations. Orchestrates analyze (measured timing + section structure + curated frames) + asset generation + a full multi-section build. For one isolated animation, use `motiscope-recreate` instead.
+
+**Arguments** (`[path-to-video] [gsap|css|framer]`): take them from the user's message. If they're missing, infer them or ask.
+
+## Running motiscope
+
+`motiscope` is a shell command. If it isn't found it isn't on your PATH — see
+https://github.com/KumarSashank/motiscope#install. The reference guides live under
+`$(motiscope home)/references/`.
+
+**Invoking the sibling skills.** In Codex, mention a skill with `$motiscope-recreate`. In
+Cursor, use `/motiscope-recreate`. Elsewhere, just follow that skill's `SKILL.md`.
+
+**Seeing the frames — do not skip this.** The curated keyframes are PNG files on disk, and
+you must actually look at them. Codex: use the `view_image` tool (if it's unavailable,
+enable `tools.view_image = true` in `~/.codex/config.toml`, or have the user relaunch with
+`codex -i frame1.png,frame2.png`). Cursor: the file-reading tool accepts `.png` and puts
+the image in context. If you genuinely cannot open images, **say so** — you can still
+report the measured timing, but you cannot know *what* is animating, and you must not
+guess it from the filenames.
 
 Rebuild a whole landing page from a walkthrough recording. This is `analyze` + `recreate`
 applied to an entire page, and it leans on the same division of labor:
@@ -21,27 +39,18 @@ applied to an entire page, and it leans on the same division of labor:
 It's a team effort: measured timing + curated frames + your vision + generated assets → a
 full page. Be honest about which is which in the final summary.
 
-<!-- motiscope:preamble:start -->
-## Resolve scripts + preflight
-
-```bash
-SCRIPTS="${CLAUDE_PLUGIN_ROOT:-}/scripts"; REFS="${CLAUDE_PLUGIN_ROOT:-}/references"
-[ -f "$SCRIPTS/ingest.py" ] || { SCRIPTS="<abs dir of this SKILL.md>/../../scripts"; REFS="<...>/../../references"; }
-```
-(Windows: `python`.)
-<!-- motiscope:preamble:end -->
 
 ## Preflight
 
 ```bash
-python3 "$SCRIPTS/mvsetup.py" --check   # exit 0 = ready; else hand to /motiscope:doctor
+motiscope doctor --check   # exit 0 = ready; else hand to `motiscope-doctor`
 ```
 Resolve the video from `$1`, else scan `animations/` (as in `analyze`).
 
 ## Step 1 — analyze the whole walkthrough
 
 ```bash
-python3 "$SCRIPTS/ingest.py" "<video>" --preset landing
+motiscope analyze "<video>" --preset landing
 ```
 
 `landing` gives readable 1280px frames and auto-decomposes onto the motion. The result:
@@ -55,7 +64,7 @@ For a long clip, note it may exceed one pass; you can also re-run focused on a r
 
 ## Step 2 — build the site plan (from the frames)
 
-`Read` `report.md` (the measured timeline) and **every curated frame** (parallel Reads).
+Read `report.md` (the measured timeline) and **every curated frame** (parallel Reads).
 Then reconstruct — this is your vision doing the work — and present a **site plan** to the user:
 
 1. **Design system:** palette (hexes), typography (name the actual fonts if you can — e.g.
@@ -73,27 +82,23 @@ Show the plan and let the user correct it before building.
 ## Step 3 — assets
 
 List the **photographic** assets the design needs (hero shots, feature photos, backgrounds —
-anything that isn't UI you can build in CSS/SVG). Then ask the user (`AskUserQuestion`): (a) point at their
+anything that isn't UI you can build in CSS/SVG). Then ask the user: (a) point at their
 own files, (b) generate, or (c) placeholders. For (b), generate with the real provider:
 
 ```bash
-python3 "$SCRIPTS/assetgen.py" --check   # confirm a key (gemini) is set
-python3 "$SCRIPTS/assetgen.py" generate --type image --provider gemini \
+motiscope assets --check   # confirm a key (gemini) is set
+motiscope assets generate --type image --provider gemini \
   --prompt "<match the shot + the design's grade>" --out assets/hero.png --aspect-ratio 16:9
 # then shrink for the web: ffmpeg -i assets/hero.png -vf scale=1200:-2 -q:v 5 assets/hero.jpg
 ```
 Match each prompt to what the frame shows and the design's color grade. If no key, hand to
-`/motiscope:doctor`. Never write keys into output or commit them.
+``motiscope-doctor``. Never write keys into output or commit them.
 
 ## Step 4 — build the page
 
 Default target **GSAP + ScrollTrigger** (`$2` overrides: `css` | `framer`). Read
-`"$REFS/easing-map.md"` and `"$REFS/targets/<target>.md"`.
-<!-- motiscope:claude-only:gsap-skills:start -->
-For GSAP, **defer to the official gsap-* skills** (gsap-timeline, gsap-core,
-**gsap-scrolltrigger** for the scroll reveals/pins, gsap-react if the project is React,
-gsap-utils for stagger).
-<!-- motiscope:claude-only:gsap-skills:end -->
+`"$(motiscope home)/references/easing-map.md"` and `"$(motiscope home)/references/targets/<target>.md"`.
+For **GSAP**, write idiomatic GSAP yourself: build the sequence with a `gsap.timeline()` and the position parameter, register a `CustomEase` for each measured `cubic-bezier`, use `stagger` for the measured `each_ms`, and reach for `ScrollTrigger` **only if** the spec has `"scroll_driven": true`. The rendering template in `$(motiscope home)/references/targets/gsap.md` has the patterns.
 
 Build one **standalone page** (`index.html` + `assets/`) with:
 - the **design system** (tokens for palette/type; embed or link the identified fonts),

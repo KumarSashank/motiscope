@@ -36,3 +36,6 @@ __pycache__/
 
 # test fixtures are generated on demand by tests/make_test_clip.sh
 tests/*.mp4
+
+# Local source recordings (rights vary — never commit)
+examples/source-videos/

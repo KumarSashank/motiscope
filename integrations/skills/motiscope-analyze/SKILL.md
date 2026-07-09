@@ -1,43 +1,41 @@
 ---
-name: analyze
-description: Analyze a screen recording of an animation to characterize its motion — timing, easing, transforms, and sequencing — so it can be recreated as web code. Use when the user drops or points at a video of an animation (.mp4/.mov/.webm/.mkv/.m4v/.avi/.gif) and says things like "I want this animation on my site", "recreate this motion", "how is this animated", or runs /motiscope:analyze.
-argument-hint: "[path-to-video] [notes]"
-allowed-tools: Bash, Read, AskUserQuestion
-user-invocable: true
+name: motiscope-analyze
+description: 'Analyze a screen recording of an animation to characterize its motion — timing, easing, transforms, and sequencing — so it can be recreated as web code. Use when the user drops or points at a video of an animation (.mp4/.mov/.webm/.mkv/.m4v/.avi/.gif) and says things like "I want this animation on my site", "recreate this motion", "how is this animated", or runs `motiscope-analyze`.'
 ---
 
 # motiscope: analyze
 
-Turn a screen recording of an animation into a precise, target-agnostic **animation spec** you can hand to `/motiscope:recreate`. A bundled Python pipeline measures the motion (a dense per-frame motion-energy curve + ffmpeg signal analysis — this is the source of truth for timing and easing) and extracts a small set of curated PNG keyframes for you to *see*. You combine the two into the spec.
+> Analyze a screen recording of an animation to characterize its motion — timing, easing, transforms, and sequencing — so it can be recreated as web code. Use when the user drops or points at a video of an animation (.mp4/.mov/.webm/.mkv/.m4v/.avi/.gif) and says things like "I want this animation on my site", "recreate this motion", "how is this animated", or runs `motiscope-analyze`.
 
-<!-- motiscope:preamble:start -->
-## Resolve the scripts directory (do this first)
+**Arguments** (`[path-to-video] [notes]`): take them from the user's message. If they're missing, infer them or ask.
 
-Every command below runs a bundled script. Set `SCRIPTS`:
+## Running motiscope
 
-```bash
-SCRIPTS="${CLAUDE_PLUGIN_ROOT:-}/scripts"
-# Fallback for harnesses that don't export CLAUDE_PLUGIN_ROOT: this SKILL.md lives at
-# <plugin>/skills/analyze/SKILL.md, so scripts are two levels up. Use the absolute
-# path of the directory containing the SKILL.md you just Read.
-if [ ! -f "$SCRIPTS/ingest.py" ]; then
-  SCRIPTS="<absolute dir of this SKILL.md>/../../scripts"
-fi
-if [ ! -f "$SCRIPTS/ingest.py" ]; then
-  echo "ERROR: cannot find ingest.py — check the plugin install." >&2; exit 1
-fi
-```
+`motiscope` is a shell command. If it isn't found it isn't on your PATH — see
+https://github.com/KumarSashank/motiscope#install. The reference guides live under
+`$(motiscope home)/references/`.
 
-On **Windows** use `python` instead of `python3` in every command below.
-<!-- motiscope:preamble:end -->
+**Invoking the sibling skills.** In Codex, mention a skill with `$motiscope-recreate`. In
+Cursor, use `/motiscope-recreate`. Elsewhere, just follow that skill's `SKILL.md`.
+
+**Seeing the frames — do not skip this.** The curated keyframes are PNG files on disk, and
+you must actually look at them. Codex: use the `view_image` tool (if it's unavailable,
+enable `tools.view_image = true` in `~/.codex/config.toml`, or have the user relaunch with
+`codex -i frame1.png,frame2.png`). Cursor: the file-reading tool accepts `.png` and puts
+the image in context. If you genuinely cannot open images, **say so** — you can still
+report the measured timing, but you cannot know *what* is animating, and you must not
+guess it from the filenames.
+
+Turn a screen recording of an animation into a precise, target-agnostic **animation spec** you can hand to ``motiscope-recreate``. A bundled Python pipeline measures the motion (a dense per-frame motion-energy curve + ffmpeg signal analysis — this is the source of truth for timing and easing) and extracts a small set of curated PNG keyframes for you to *see*. You combine the two into the spec.
+
 
 ## Step 0 — preflight (silent on success)
 
 ```bash
-python3 "$SCRIPTS/mvsetup.py" --check
+motiscope doctor --check
 ```
 
-Exit 0 → proceed silently. Non-zero → `ffmpeg`/`ffprobe` are missing; hand off to `/motiscope:doctor` (don't try to analyze without them).
+Exit 0 → proceed silently. Non-zero → `ffmpeg`/`ffprobe` are missing; hand off to ``motiscope-doctor`` (don't try to analyze without them).
 
 ## Step 1 — resolve the input video
 
@@ -46,7 +44,7 @@ Exit 0 → proceed silently. Non-zero → `ffmpeg`/`ffprobe` are missing; hand o
   ```bash
   ls -t animations/*.{mp4,mov,webm,mkv,m4v,avi,gif} *.{mp4,mov,webm,mkv,m4v,avi,gif} 2>/dev/null | head
   ```
-  - Several candidates → ask the user (`AskUserQuestion`) which one.
+  - Several candidates → ask the user which one.
   - Exactly one → use it.
   - None → tell the user to drop a recording into `animations/` (or pass a path) and stop.
 
@@ -55,14 +53,14 @@ Exit 0 → proceed silently. Non-zero → `ffmpeg`/`ffprobe` are missing; hand o
 ## Step 2 — run the pipeline
 
 ```bash
-python3 "$SCRIPTS/ingest.py" "<video>" --preset balanced
+motiscope analyze "<video>" --preset balanced
 ```
 
 It writes to `.motiscope/<slug>/` and prints a summary, the `report.md` path, and the ordered curated frame list.
 
 ### Choose a preset (this is the main token dial)
 
-The number of frames you `Read` is what costs tokens (~300–400 tokens/frame); the numeric analysis is free. Frame count tracks *motion complexity*, capped by the preset — it does **not** grow with video length.
+The number of frames you Read is what costs tokens (~300–400 tokens/frame); the numeric analysis is free. Frame count tracks *motion complexity*, capped by the preset — it does **not** grow with video length.
 
 | Preset | Frame cap | Resolution | Use when |
 |---|---|---|---|
@@ -78,7 +76,7 @@ Start with `balanced`. Only reach for `detailed` if the animation is intricate o
 For anything longer than ~15s, or when the user points at a specific moment ("the part around 0:12", "the last second"), analyze just that window instead of a sparse whole-clip scan. Times accept `SS`, `MM:SS`, or `HH:MM:SS`; frame/segment timestamps come back in **absolute** source time.
 
 ```bash
-python3 "$SCRIPTS/ingest.py" "<video>" --preset detailed --start 0:12 --end 0:15
+motiscope analyze "<video>" --preset detailed --start 0:12 --end 0:15
 ```
 
 ### Capture fast content densely (`--fps`)
@@ -86,7 +84,7 @@ python3 "$SCRIPTS/ingest.py" "<video>" --preset detailed --start 0:12 --end 0:15
 Within a (short) focus window you can force a uniform sample rate so nothing between keyposes is missed — e.g. `--fps 20` gives up to a frame every ~50ms. Near-identical frames are still collapsed unless you pass `--no-dedup`. Combine with a short window so the budget isn't blown:
 
 ```bash
-python3 "$SCRIPTS/ingest.py" "<video>" --start 1.0 --end 3.0 --fps 20 --frame-budget 48
+motiscope analyze "<video>" --start 1.0 --end 3.0 --fps 20 --frame-budget 48
 ```
 
 ### Complex / long animations: auto-decompose
@@ -106,8 +104,8 @@ Other flags: `--frame-budget N` / `--resolution W` override the preset; `--forma
 - **You give the WHAT.** The frames are yours to read with full vision. Identify the elements and — crucially — **what *kind* of animation each one is.** motiscope does **not** classify animation types, and you are **not** limited to fade/slide/scale: name whatever you actually see — a mask reveal, a path/line draw, a morph, a rotate/skew, a 3D flip, a text split/typewriter, a blur, a color shift, a parallax, a physics/spring bounce, particles, a clip-path wipe, anything. The pipeline deliberately leaves this to your perception because you're better at it than any hand-coded classifier.
 
 Steps:
-1. `Read` the printed `report.md` for the measured timing (energy sparkline, segment/beat table with the fitted `cubic-bezier`, stagger timing, loop).
-2. `Read` **every curated frame in one message** (parallel Reads) so you see them in order. Filenames encode `t=<seconds>` + why each was picked, so you can line frames up against the measured timeline.
+1. Read the printed `report.md` for the measured timing (energy sparkline, segment/beat table with the fitted `cubic-bezier`, stagger timing, loop).
+2. Read **every curated frame in one message** (parallel Reads) so you see them in order. Filenames encode `t=<seconds>` + why each was picked, so you can line frames up against the measured timeline.
 
 **Read timing from the numbers; read everything else from the frames.**
 
@@ -145,7 +143,7 @@ Rules:
 
 Summarize the animation in one or two sentences, then offer:
 
-> Recreate this as **GSAP**, **CSS**, **Framer Motion**, or **Lottie/SVG**? Run `/motiscope:recreate <target>`.
+> Recreate this as **GSAP**, **CSS**, **Framer Motion**, or **Lottie/SVG**? Run ``motiscope-recreate` <target>`.
 
 The spec you just built is saved in `.motiscope/<slug>/manifest.json`; `recreate` will reload it (plus `motion.json`) if you don't hand it over directly.
 

@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Standard library only
+        run: |
+          if grep -rnE '^[[:space:]]*(import|from)[[:space:]]+(numpy|PIL|cv2|requests|scipy|ffmpeg)\b' \
+               --include='*.py' scripts/ tests/ bin/; then
+            echo "::error::third-party import found — motiscope is stdlib-only" && exit 1
+          fi
+
+      - name: Integrations are in sync with skills/
+        run: python3 scripts/build_integrations.py --check
+
+      - name: Tests
+        run: python3 -m unittest tests.test_analyze_motion tests.test_integrations -v
+
+      - name: CLI smoke test
+        run: |
+          ./install.sh
+          export PATH="$HOME/.local/bin:$PATH"
+          motiscope version
+          motiscope doctor --check
+          motiscope install cursor --dest "$(mktemp -d)"
+          motiscope install skills --dir "$(mktemp -d)"

@@ -1,7 +1,9 @@
 # Contributing to motiscope
 
-Thanks for your interest! motiscope is a Claude Code plugin: a set of skills
-backed by small Python scripts and `ffmpeg`.
+Thanks for your interest! motiscope is a set of agent workflows backed by small
+Python scripts and `ffmpeg`. It ships as a Claude Code plugin and as portable agent
+skills for Codex, Cursor, and anything that reads `AGENTS.md` — see
+[PLATFORMS.md](PLATFORMS.md).
 
 ## Ground rules
 
@@ -13,17 +15,24 @@ backed by small Python scripts and `ffmpeg`.
 - **Match the measured/estimated split.** Anything derived from the numeric motion
   curve is "measured"; anything read off frames is "estimated". Keep that honest in
   outputs and docs.
+- **`skills/*/SKILL.md` is the single source of truth.** Everything under
+  `integrations/` is generated from it. Never hand-edit a generated file — change the
+  skill and run `python3 scripts/build_integrations.py`. CI fails on drift.
 
 ## Layout
 
 ```
-.claude-plugin/     plugin.json + marketplace.json
-skills/             analyze, recreate, doctor (SKILL.md each)
-scripts/            mvlib, analyze_motion, extract_frames, ingest, config, assetgen, mvsetup
+.claude-plugin/     plugin.json + marketplace.json      (Claude Code)
+skills/             analyze, recreate, rebuild-site, doctor (SKILL.md each) -- SOURCE OF TRUTH
+integrations/       GENERATED: portable skills, AGENTS.md block, Cursor rule
+bin/                motiscope launcher (+ .cmd for Windows)
+install.sh          symlinks bin/motiscope onto PATH
+scripts/            cli, mvlib, analyze_motion, extract_frames, ingest, config,
+                    assetgen, mvsetup, build_integrations
 references/         easing-map.md + targets/{gsap,css,framer,lottie}.md
-agents/             motion-analyst.md
-hooks/              hooks.json + scripts/check-setup.sh
-tests/              make_test_clip.sh + test_analyze_motion.py
+agents/             motion-analyst.md                   (Claude Code)
+hooks/              hooks.json + scripts/check-setup.sh (Claude Code)
+tests/              make_test_clip.sh, test_analyze_motion.py, test_integrations.py
 ```
 
 ## Dev loop
@@ -33,9 +42,12 @@ tests/              make_test_clip.sh + test_analyze_motion.py
 3. Run a clip through the pipeline:
    `python3 scripts/ingest.py tests/test-ease.mp4 --frame-budget 16`
    and inspect `.motiscope/<slug>/report.md`.
-4. Run the tests: `python3 -m unittest tests.test_analyze_motion`.
-5. Test the plugin live in Claude Code from a checkout:
+4. Run the tests: `python3 -m unittest tests.test_analyze_motion tests.test_integrations`.
+5. If you touched a `SKILL.md`, regenerate: `python3 scripts/build_integrations.py`
+   (verify with `--check`; CI runs it).
+6. Test the plugin live in Claude Code from a checkout:
    `claude --plugin-dir .` then `/motiscope:analyze tests/test-ease.mp4`.
+7. Test the portable path: `./install.sh && motiscope install cursor --dest /tmp/x --dry-run`.
 
 ## Adding a recreation target
 

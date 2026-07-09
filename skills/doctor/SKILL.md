@@ -11,19 +11,28 @@ user-invocable: true
 Verify dependencies and scaffold config. motiscope's pipeline is pure Python
 standard library, so the only hard dependencies are **ffmpeg** and **ffprobe**.
 
-## Resolve scripts + run status
+<!-- motiscope:preamble:start -->
+## Resolve the scripts directory
 
 ```bash
 SCRIPTS="${CLAUDE_PLUGIN_ROOT:-}/scripts"
 [ -f "$SCRIPTS/mvsetup.py" ] || SCRIPTS="<absolute dir of this SKILL.md>/../../scripts"
+```
+
+(Windows: use `python`.)
+<!-- motiscope:preamble:end -->
+
+## Run status
+
+```bash
 python3 "$SCRIPTS/mvsetup.py" --json
 ```
 
-(Windows: use `python`.) The JSON reports `status`, `missing_binaries`, `install_hint`, `platform`, `config_file`, `env_file`, and per-provider key presence.
+The JSON reports `status`, `missing_binaries`, `install_hint`, `platform`, `config_file`, `env_file`, and per-provider key presence.
 
 ## If ffmpeg/ffprobe are missing
 
-Do **not** install silently. Use `AskUserQuestion` to ask permission, then run the platform command:
+Do **not** install silently. Ask the user for permission (`AskUserQuestion`), then run the platform command:
 
 - **macOS (Homebrew):** `brew install ffmpeg`
 - **Linux:** `sudo apt-get install -y ffmpeg` (or `sudo dnf install ffmpeg`)
@@ -43,7 +52,7 @@ This creates, if absent:
 
 ## API keys (optional)
 
-Asset generation (creating an image/video an animation needs) is **stubbed in v0.1** — no network calls happen yet, so no key is required for analysis or code recreation. If the user wants to wire a provider for later, `AskUserQuestion` which one and write the key into `~/.config/motiscope/.env`:
+Asset generation (creating an image an animation needs) is **optional** — no key is required for analysis or code recreation. Image generation is real for **Gemini/Imagen**; the other providers write a labeled placeholder until wired. To configure one, ask the user (`AskUserQuestion`) which provider, and write the key into `~/.config/motiscope/.env`:
 
 | Purpose | Providers (env var) |
 |---|---|

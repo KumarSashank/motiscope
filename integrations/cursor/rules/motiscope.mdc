@@ -1,0 +1,45 @@
+---
+description: motiscope — measure and recreate animations from screen recordings
+alwaysApply: false
+---
+
+## motiscope — recreate animations from screen recordings
+
+[motiscope](https://github.com/KumarSashank/motiscope) turns a screen recording of an
+animation into working web-animation code. It measures the one thing a screenshot cannot
+show — **time** — and leaves perception to you.
+
+### The division of labor
+
+- **The numbers measure the WHEN.** `motiscope analyze` emits exact durations, per-segment
+  easing as a real `cubic-bezier` fitted from the velocity profile, beat boundaries,
+  stagger timing, and loop period. Copy these verbatim; never re-estimate them from frames.
+- **You supply the WHAT.** motiscope curates a handful of keyframe PNGs and deliberately
+  does **not** classify animation types. Look at the frames and name what you actually
+  see — a mask reveal, a path draw, a morph, a 3D flip, a text split, particles, anything.
+
+### Commands
+
+```bash
+motiscope doctor                       # verify ffmpeg + ffprobe (the only dependencies)
+motiscope analyze <video> [--preset balanced|draft|detailed|landing]
+motiscope home                         # reference guides live under $(motiscope home)/references/
+```
+
+`analyze` writes `.motiscope/<slug>/` containing `report.md` (the measured timing),
+`motion.json` (the raw energy curve), and `frames/*.png`. Read the report, then **look at
+every frame**, then build the animation. Local video files only — motiscope never
+downloads URLs.
+
+### Workflows
+
+| Skill | What it does |
+|---|---|
+| `motiscope-analyze` | Analyze a screen recording of an animation to characterize its motion — timing, easing, transforms, and sequencing — so it can be recreated as web code. |
+| `motiscope-recreate` | Recreate an analyzed animation as working web code — GSAP (JavaScript), CSS/Web Animations, Framer Motion (React), or Lottie/SVG. |
+| `motiscope-rebuild-site` | Rebuild a whole landing page / multi-section website from a screen recording that scrolls or walks through it. |
+| `motiscope-doctor` | Check and configure motiscope — verify ffmpeg/ffprobe are installed and scaffold the API-key config used for optional (stubbed) asset generation. |
+
+Only the frames cost image tokens (~300–400 each); the numeric analysis is free. Frame
+count tracks motion complexity, not video length. Recreation targets: GSAP, CSS/Web
+Animations, Framer Motion, Lottie/SVG. Always include a `prefers-reduced-motion` guard.

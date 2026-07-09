@@ -11,7 +11,8 @@
 
 <p align="center">
   <img alt="license MIT" src="https://img.shields.io/badge/license-MIT-6366f1">
-  <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude%20Code-plugin-818cf8">
+  <img alt="version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-818cf8">
+  <img alt="works with Claude Code, Codex, Cursor" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Cursor-a78bfa">
   <img alt="deps ffmpeg" src="https://img.shields.io/badge/deps-ffmpeg-e879f9">
   <img alt="recreate targets" src="https://img.shields.io/badge/recreate-GSAP%20%C2%B7%20CSS%20%C2%B7%20Framer%20%C2%B7%20Lottie-22d3ee">
 </p>
@@ -20,13 +21,15 @@
   <a href="https://kumarsashank.github.io/motiscope/"><b>🔗 Live site</b></a> ·
   <a href="QUICKSTART.md">Quickstart</a> ·
   <a href="#install">Install</a> ·
+  <a href="PLATFORMS.md">Platforms</a> ·
   <a href="#how-it-works">How it works</a>
 </p>
 
 ---
 
-A Claude Code plugin dedicated to motion design. Pure Python (standard library) +
-`ffmpeg`. No cloud, no npm, no accounts required.
+A motion-design tool for coding agents. Pure Python (standard library) + `ffmpeg`.
+No cloud, no npm, no accounts required. Ships as a **Claude Code plugin**, and as
+**portable agent skills** for Codex, Cursor, and anything that reads `AGENTS.md`.
 
 > "I want this animation on my site." — drop the clip, run `/motiscope:analyze`,
 > then `/motiscope:recreate gsap`.
@@ -80,14 +83,29 @@ motiscope recreates.)*
 
 ## Install
 
+**Claude Code** — install the plugin; it bundles everything:
+
 ```
 /plugin marketplace add github:KumarSashank/motiscope
 /plugin install motiscope@motiscope
 ```
 
-Requires `ffmpeg` + `ffprobe`. Run `/motiscope:doctor` to check and (with your
-consent) install them (`brew install ffmpeg` on macOS). New here? See
-**[QUICKSTART.md](QUICKSTART.md)**.
+**Codex, Cursor, or any other agent** — install the CLI, then teach your agent:
+
+```sh
+git clone https://github.com/KumarSashank/motiscope.git ~/.motiscope
+~/.motiscope/install.sh      # one symlink into ~/.local/bin, no sudo
+
+motiscope install codex      # -> ~/.agents/skills/
+motiscope install cursor     # -> ./.cursor/skills/ + rules
+motiscope install agents     # -> a marked block in ./AGENTS.md
+motiscope install list       # every target
+```
+
+Requires `ffmpeg` + `ffprobe` (and `python3`). Run `motiscope doctor` — or
+`/motiscope:doctor` in Claude Code — to check and, with your consent, install them.
+New here? See **[QUICKSTART.md](QUICKSTART.md)**. Full matrix and version caveats:
+**[PLATFORMS.md](PLATFORMS.md)**.
 
 ## Usage
 
@@ -112,8 +130,13 @@ web animation, screen-record it and save the file.
 | `/motiscope:rebuild-site [path] [gsap\|css\|framer]` | Rebuild a **whole landing page** from a walkthrough recording — sections, copy, design system, scroll animations, and generated assets. |
 | `/motiscope:doctor` | Verify `ffmpeg`/`ffprobe`; scaffold `~/.config/motiscope/{config.json,.env}`. |
 
-GSAP output leans on the official GSAP skills (timeline / core / scrolltrigger /
-react / utils) for idiomatic results.
+Outside Claude Code the same four workflows are skills named `motiscope-analyze`,
+`motiscope-recreate`, `motiscope-rebuild-site`, `motiscope-doctor` (Codex mentions them
+with `$name`, Cursor with `/name`), and the measurement runs as `motiscope analyze ...`.
+
+In Claude Code, GSAP output leans on the official GSAP skills (timeline / core /
+scrolltrigger / react / utils) for idiomatic results; elsewhere the workflow carries the
+equivalent guidance inline.
 
 ## Controlling frames & token cost
 
@@ -194,8 +217,12 @@ fal; video — Runway, Replicate, fal.
 See [CONTRIBUTING.md](CONTRIBUTING.md). Run the test suite:
 
 ```
-python3 -m unittest tests.test_analyze_motion
+python3 -m unittest tests.test_analyze_motion tests.test_integrations
 ```
+
+`skills/*/SKILL.md` is the single source of truth for the workflows; everything under
+`integrations/` is generated from it by `scripts/build_integrations.py`, and CI fails if
+the two drift apart. See [PLATFORMS.md](PLATFORMS.md#adding-a-platform).
 
 ## Credits & license
 

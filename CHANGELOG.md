@@ -3,7 +3,58 @@
 All notable changes to motiscope are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses semver.
 
-## [0.6.0] — unreleased
+## [1.0.0] — 2026-07-09
+
+**The first stable release, and the one that stops being Claude-Code-only.**
+
+The measurement pipeline, the frame curation, the fitted easing curves, and the four
+recreation targets have all been exercised on real recordings (see the
+[gallery](https://kumarsashank.github.io/motiscope/gallery.html)). The public surface —
+the `motiscope` CLI, the `.motiscope/<slug>/` output contract, and the four workflows —
+is now stable and will follow semver.
+
+### Added
+- **A platform-neutral `motiscope` CLI** (`bin/motiscope`, `bin/motiscope.cmd`). Any agent
+  that can run a shell can now drive the pipeline without knowing where motiscope lives:
+  `analyze`, `doctor`, `assets`, `config`, `home`, `install`. There is deliberately no
+  `recreate` subcommand — recreation is the model writing code, not a script.
+- **Portable agent skills.** `integrations/skills/motiscope-*/SKILL.md` carry only the
+  `name` + `description` frontmatter that both [Codex](https://developers.openai.com/codex/skills)
+  and [Cursor](https://cursor.com/help/customization/skills) read, so the same workflows
+  run on either.
+- **`motiscope install <platform>`** mounts those skills where each agent looks —
+  `codex` (`~/.agents/skills/`), `cursor` (`./.cursor/skills/` + a project rule),
+  `agents` (a marked, re-updatable block in `AGENTS.md`, read by ~20 tools), or
+  `skills --dir <path>` for anything else. `--dry-run`, `--force`, `--dest` supported;
+  nothing is overwritten without `--force`.
+- **`install.sh`** — one symlink into `~/.local/bin`, no sudo, no network.
+- **[PLATFORMS.md](PLATFORMS.md)** — the support matrix, the CLI reference, and an honest
+  list of version caveats (Codex's skills directory moved between versions; its custom
+  prompts are deprecated; Cursor's slash-argument grammar is unspecified).
+- **CI** — tests, a stdlib-only import guard, a CLI smoke test, and the drift check below.
+
+### Changed
+- **`skills/*/SKILL.md` is now the single source of truth.** Everything under
+  `integrations/` is generated from it by `scripts/build_integrations.py`, which strips
+  the Claude-Code-only preamble, swaps Claude-only blocks for portable equivalents (Claude
+  Code ships the official `gsap-*` skills; no other agent has them), and rewrites bundled
+  script paths into `motiscope ...` commands. The generator then **asserts no
+  Claude-specific token survived**, so an unmapped `$SCRIPTS/foo.py` fails the build
+  instead of shipping an instruction other agents can't follow.
+- Asset generation is described accurately as *optional* rather than "stubbed in v0.1".
+
+### Notes
+- The four workflows are named `motiscope-analyze`, `motiscope-recreate`,
+  `motiscope-rebuild-site`, and `motiscope-doctor` outside Claude Code (Codex mentions
+  them with `$name`, Cursor with `/name`).
+- Agents that cannot open a PNG can still report the measured timing, but the workflows
+  instruct them to say so rather than guess what is animating.
+
+---
+
+Everything below shipped during pre-1.0 development and is included in 1.0.0.
+
+## [0.6.0] — pre-release
 
 ### Added
 - **`.gif` inputs.** Screen recordings of web animations are very often GIFs; `analyze`
@@ -14,7 +65,7 @@ All notable changes to motiscope are documented here. The format follows
   motion motiscope measured from the tomato. Featured in the README and the gallery.
   *The timing transfers; the artwork doesn't have to.*
 
-## [0.5.0] — unreleased
+## [0.5.0] — pre-release
 
 ### Added
 - **`/motiscope:rebuild-site`** — a workflow that rebuilds a *whole landing page* from a
@@ -25,7 +76,7 @@ All notable changes to motiscope are documented here. The format follows
   measured timing. Includes an attribution/rights step for design-to-code studies. This is
   the Alterfx example, generalized into one command.
 
-## [0.4.0] — unreleased
+## [0.4.0] — pre-release
 
 Refocus: the numbers measure *time*; the model does the *perception*.
 
@@ -49,7 +100,7 @@ frames. Sharpened the division of labor:
 - The abandoned per-element clustering experiment (a sweep and a stagger are
   indistinguishable in frame-differencing — needs optical flow, which is out of scope).
 
-## [0.3.0] — unreleased
+## [0.3.0] — pre-release
 
 Deeper motion measurement (sharpening the core recreate-a-single-animation use).
 
@@ -65,7 +116,7 @@ Deeper motion measurement (sharpening the core recreate-a-single-animation use).
 - Report shows a `cubic-bezier` and `dir` column per segment; the spec schema and the
   easing map are updated to prefer the measured values.
 
-## [0.2.0] — unreleased
+## [0.2.0] — pre-release
 
 Fixes from the first real-world landing-page test (a Dribbble concept walkthrough).
 
@@ -86,7 +137,7 @@ Fixes from the first real-world landing-page test (a Dribbble concept walkthroug
   API) in `assetgen.py` — the asset-key + consent flow now actually produces images.
   Other providers (video, etc.) still write a labeled placeholder.
 
-## [0.1.0] — unreleased
+## [0.1.0] — pre-release
 
 Initial release.
 
