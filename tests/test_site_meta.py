@@ -104,5 +104,47 @@ class TestSocialPreview(unittest.TestCase):
                 self.assertNotIn("raw.githubusercontent.com", m["og:image"])
 
 
+class TestSearchIndexing(unittest.TestCase):
+    """A page nobody can find is a page nobody reads."""
+
+    def test_robots_allows_everything_and_names_the_sitemap(self):
+        robots = (DOCS / "robots.txt").read_text()
+        self.assertIn("Allow: /", robots)
+        self.assertNotIn("Disallow: /\n", robots)
+        self.assertIn(f"Sitemap: {BASE}/sitemap.xml", robots)
+
+    def test_sitemap_lists_every_published_page(self):
+        sm = (DOCS / "sitemap.xml").read_text()
+        expected = {
+            f"{BASE}/",
+            f"{BASE}/gallery.html",
+            f"{BASE}/how-it-works.html",
+            f"{BASE}/examples/ambient/",
+        }
+        for loc in expected:
+            with self.subTest(url=loc):
+                self.assertIn(f"<loc>{loc}</loc>", sm,
+                              f"{loc} is published but absent from sitemap.xml")
+
+    def test_sitemap_urls_resolve_to_real_files(self):
+        sm = (DOCS / "sitemap.xml").read_text()
+        for loc in re.findall(r"<loc>([^<]+)</loc>", sm):
+            with self.subTest(url=loc):
+                rel = loc[len(BASE) + 1:] or "index.html"
+                if rel.endswith("/"):
+                    rel += "index.html"
+                self.assertTrue((DOCS / rel).is_file(), f"sitemap points at missing {rel}")
+
+    def test_homepage_declares_structured_data(self):
+        import json
+        html = (DOCS / "index.html").read_text()
+        m = re.search(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+        self.assertIsNotNone(m, "index.html has no JSON-LD; search engines get no entity")
+        graph = json.loads(m.group(1))["@graph"]
+        types = {n["@type"] for n in graph}
+        self.assertIn("SoftwareApplication", types)
+        self.assertIn("SoftwareSourceCode", types)
+
+
 if __name__ == "__main__":
     unittest.main()

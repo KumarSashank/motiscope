@@ -1,0 +1,5 @@
+# motiscope — everything here is meant to be indexed.
+User-agent: *
+Allow: /
+
+Sitemap: https://kumarsashank.github.io/motiscope/sitemap.xml
