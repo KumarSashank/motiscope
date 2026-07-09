@@ -6,6 +6,19 @@ All notable changes to motiscope are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **Example: parallax landscape** — a scroll-driven hero (sky, far hills, mid hills, deep
+  hills with a viaduct, foreground trees) recreated from a 2.25s screen recording as one
+  self-contained page: hand-drawn SVG layers, ~20 lines of JS, `prefers-reduced-motion`
+  honoured. Live at `docs/examples/parallax/`.
+  - A parallax is **scroll-driven**, so the clip's seconds belong to whoever scrolled. What
+    is intrinsic is each layer's *speed ratio*. Recovered by mask alignment over the window
+    where every layer is on screen: **0.72×** (mid hills) and **0.86×** (deep hills), each
+    reproduced at two independent scales.
+  - The sky/far backdrop is reported as **not recoverable** — a smooth gradient has no stable
+    colour mask, and four estimators disagreed from −0.03 to 0.63. Its two coefficients are
+    stated as design choices, not measurements.
+  - Verified in a real browser: at `scrollY=300`, every layer's on-screen speed equals the
+    factor it was given (`implied_f` = 0.000 / 0.300 / 0.720 / 0.860 / 1.000).
 - **How it works** — a deep explainer of the analysis, published two ways: a narrated
   live page at `docs/how-it-works.html` (site theme, figures drawn from real pipeline
   output) and `docs/how-it-works.md` with the exact constants, ffmpeg filter strings, and
