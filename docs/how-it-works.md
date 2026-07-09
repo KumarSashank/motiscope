@@ -164,8 +164,9 @@ Read that figure carefully, because it shows both the strength and the limit:
 Timestamps worth looking at are the union of: `t=0`, `t=end`, every segment boundary,
 energy-curve extrema (keyposes and peaks), and a sparse uniform backbone. Then:
 
-1. **Perceptual dedup** — each candidate is reduced to a 16×16 grayscale thumbnail; if the
-   mean absolute difference against the kept neighbour is ≤ `2.0`, drop it.
+1. **Perceptual dedup** — each candidate is reduced to a grayscale thumbnail of
+   `DEDUP_THUMB` = `16` squared; if its mean absolute difference against the kept
+   neighbour is at or below `DEDUP_THRESHOLD` = `2.0`, drop it.
 2. **Even sample** down to the preset's frame budget.
 
 | Preset | Frames | Resolution | For |

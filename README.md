@@ -243,7 +243,8 @@ fal; video — Runway, Replicate, fal.
 See [CONTRIBUTING.md](CONTRIBUTING.md). Run the test suite:
 
 ```
-python3 -m unittest tests.test_analyze_motion tests.test_integrations
+python3 -m unittest tests.test_analyze_motion tests.test_integrations \
+                tests.test_docs_constants tests.test_site_meta
 ```
 
 `skills/*/SKILL.md` is the single source of truth for the workflows; everything under

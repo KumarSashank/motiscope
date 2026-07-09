@@ -6,6 +6,22 @@
 <title>How it works — motiscope</title>
 <meta name="description" content="A screenshot has no time axis. motiscope measures the time — a motion-energy curve, a percentile-anchored hold threshold, and easing recovered by integrating speed — and leaves perception to the model.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A1%3C/text%3E%3C/svg%3E">
+<meta property="og:site_name" content="motiscope">
+<meta property="og:type" content="website">
+<meta property="og:title" content="How motiscope works — a screenshot has no time axis">
+<meta property="og:description" content="The motion-energy curve, why the hold threshold is anchored to the 75th percentile instead of the peak, and how easing is recovered by integrating speed. With figures from real pipeline output.">
+<meta property="og:url" content="https://kumarsashank.github.io/motiscope/how-it-works.html">
+<meta property="og:image" content="https://kumarsashank.github.io/motiscope/og/how-it-works.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A screenshot has no time axis. The numbers measure the WHEN; the frames carry the WHAT.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How motiscope works — a screenshot has no time axis">
+<meta name="twitter:description" content="The motion-energy curve, why the hold threshold is anchored to the 75th percentile instead of the peak, and how easing is recovered by integrating speed. With figures from real pipeline output.">
+<meta name="twitter:image" content="https://kumarsashank.github.io/motiscope/og/how-it-works.png">
+<meta name="twitter:image:alt" content="A screenshot has no time axis. The numbers measure the WHEN; the frames carry the WHAT.">
+<link rel="canonical" href="https://kumarsashank.github.io/motiscope/how-it-works.html">
 <style>
   :root{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);
     --ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399;--btn:#6366f1;
@@ -221,9 +237,10 @@ threshold  = max(0.05, 0.18 &times; motion_ref)</code></pre>
     <p class="sub">the only step that costs money</p>
     <p>Candidate timestamps are the union of <code>t=0</code>, <code>t=end</code>, every segment
       boundary, the energy-curve extrema (keyposes and peaks), and a sparse uniform backbone.
-      Then each candidate is reduced to a 16&times;16 grayscale thumbnail and dropped if it is
-      within a mean-absolute-difference of <code>2.0</code> of the frame already kept. What
-      survives is evenly sampled down to the preset&rsquo;s budget.</p>
+      Then each candidate is reduced to a grayscale thumbnail of <code>DEDUP_THUMB</code> = 16
+      squared, and dropped if it is within a mean-absolute-difference of
+      <code>DEDUP_THRESHOLD</code> = 2.0 of the frame already kept. What survives is evenly
+      sampled down to the preset&rsquo;s budget.</p>
     <table>
       <tr><th>Preset</th><th>Frames</th><th>Resolution</th><th>For</th></tr>
       <tr><td><code>draft</code></td><td>12</td><td>512px</td><td>quick look, tight budget</td></tr>

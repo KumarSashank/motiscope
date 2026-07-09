@@ -42,7 +42,9 @@ tests/              make_test_clip.sh, test_analyze_motion.py, test_integrations
 3. Run a clip through the pipeline:
    `python3 scripts/ingest.py tests/test-ease.mp4 --frame-budget 16`
    and inspect `.motiscope/<slug>/report.md`.
-4. Run the tests: `python3 -m unittest tests.test_analyze_motion tests.test_integrations`.
+4. Run the tests: `python3 -m unittest tests.test_analyze_motion tests.test_integrations tests.test_docs_constants tests.test_site_meta`.
+   - `test_docs_constants` fails if `docs/how-it-works.md` disagrees with the code.
+   - `test_site_meta` fails if a published page would not unfurl when shared.
 5. If you touched a `SKILL.md`, regenerate: `python3 scripts/build_integrations.py`
    (verify with `--check`; CI runs it).
 6. Test the plugin live in Claude Code from a checkout:
