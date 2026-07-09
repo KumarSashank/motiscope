@@ -288,6 +288,73 @@ def classify_easing(seg: list[float]) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# Measured easing: fit an actual cubic-bezier to the displacement curve
+# --------------------------------------------------------------------------- #
+# name -> (cubic-bezier control points x1,y1,x2,y2 (CSS convention), neutral token)
+EASE_LIB = {
+    "linear":            ((0.0, 0.0, 1.0, 1.0), "linear"),
+    "ease-in":           ((0.42, 0.0, 1.0, 1.0), "ease-in"),
+    "ease-in-strong":    ((0.7, 0.0, 0.84, 0.0), "ease-in"),
+    "ease-out":          ((0.0, 0.0, 0.58, 1.0), "ease-out"),
+    "ease-out-strong":   ((0.16, 1.0, 0.3, 1.0), "ease-out"),
+    "ease-in-out":       ((0.42, 0.0, 0.58, 1.0), "ease-in-out"),
+    "ease-in-out-strong":((0.65, 0.0, 0.35, 1.0), "ease-in-out"),
+}
+
+
+def _bezier_samples(x1, y1, x2, y2, m: int = 60):
+    """Sample a cubic-bezier timing curve (P0=(0,0), P3=(1,1)) as (x, y) points."""
+    out = []
+    for i in range(m + 1):
+        s = i / m
+        u = 1 - s
+        x = 3 * u * u * s * x1 + 3 * u * s * s * x2 + s ** 3
+        y = 3 * u * u * s * y1 + 3 * u * s * s * y2 + s ** 3
+        out.append((x, y))
+    return out
+
+
+def _y_at_x(curve, x):
+    for i in range(1, len(curve)):
+        if curve[i][0] >= x:
+            x0, y0 = curve[i - 1]
+            x1, y1 = curve[i]
+            if x1 == x0:
+                return y1
+            return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+    return curve[-1][1]
+
+
+def fit_easing(seg_energy: list[float]) -> dict:
+    """Fit a cubic-bezier to the segment's normalized displacement curve.
+
+    The energy curve is speed (mean pixel change ~ |velocity|); its running integral,
+    normalized to [0,1], is the displacement-vs-time curve. We match that against a
+    small library of standard eases and return the closest — an actual measured bezier,
+    not just a class. (Monotonic moves fit well; overshoot/spring is handled upstream.)"""
+    n = len(seg_energy)
+    if n < 4:
+        return {"ease": "linear", "ease_name": "linear", "bezier": [0.0, 0.0, 1.0, 1.0],
+                "fit_rmse": None, "confidence": "low"}
+    total = sum(seg_energy) or 1.0
+    cum, pos = 0.0, []
+    for e in seg_energy:
+        cum += e
+        pos.append(cum / total)
+    obs = [(i / (n - 1), pos[i]) for i in range(n)]
+
+    best = None
+    for name, (bez, tok) in EASE_LIB.items():
+        curve = _bezier_samples(*bez)
+        rmse = (sum((p - _y_at_x(curve, t)) ** 2 for t, p in obs) / len(obs)) ** 0.5
+        if best is None or rmse < best[0]:
+            best = (rmse, name, bez, tok)
+    rmse, name, bez, tok = best
+    return {"ease": tok, "ease_name": name, "bezier": [round(v, 3) for v in bez],
+            "fit_rmse": round(rmse, 4), "confidence": "measured" if rmse < 0.05 else "estimated"}
+
+
+# --------------------------------------------------------------------------- #
 # Pass B: ffmpeg signal filters (parsers ported from analyzers.ts)
 # --------------------------------------------------------------------------- #
 def run_signal_pass(video: str, out_dir: Path,
@@ -516,10 +583,16 @@ def build_segments(energy: list[float], fps: float, fades: list[dict],
     for flag, a, b in runs:
         start_ms, end_ms = round(a / fps * 1000), round(b / fps * 1000)
         if flag:
-            info = classify_easing(energy[a:b + 1])
+            seg_e = energy[a:b + 1]
+            info = classify_easing(seg_e)
+            if info["ease"] == "spring":
+                ease, ename, bez, conf = "spring", "back.out", [0.34, 1.56, 0.64, 1.0], info["confidence"]
+            else:
+                fit = fit_easing(seg_e)
+                ease, ename, bez, conf = fit["ease"], fit["ease_name"], fit["bezier"], fit["confidence"]
             segs.append({"kind": "move", "start_ms": start_ms, "end_ms": end_ms,
-                         "ease": info["ease"], "ease_confidence": info["confidence"],
-                         "peak_energy": round(max(energy[a:b + 1]), 3), "stats": info["stats"]})
+                         "ease": ease, "ease_name": ename, "bezier": bez, "ease_confidence": conf,
+                         "peak_energy": round(max(seg_e), 3), "stats": info["stats"]})
         else:
             segs.append({"kind": "hold", "start_ms": start_ms, "end_ms": end_ms})
 
@@ -672,6 +745,51 @@ def _apply_offset(result: dict, off: float) -> None:
         sig["brightness"]["times"] = [r3(t) for t in sig["brightness"]["times"]]
 
 
+def _dir_label(dx: float, dy: float, thr: float = 0.06) -> str:
+    h = "right" if dx > thr else "left" if dx < -thr else ""
+    v = "down" if dy > thr else "up" if dy < -thr else ""
+    if not h and not v:
+        return "in-place"
+    return "-".join(p for p in (v, h) if p)
+
+
+def attach_directions(segments: list[dict], cell_series, grid: int, fps: float) -> None:
+    """Attach a travel direction to each move/fade segment from the motion-grid energy
+    centroid (where change is concentrated) drifting over the segment. In-place motion
+    (scale/fade with no translation) reads as 'in-place'."""
+    if not cell_series:
+        return
+    n = len(cell_series[0])
+    ncells = len(cell_series)
+    for s in segments:
+        if s["kind"] not in ("move", "fade-in", "fade-out"):
+            continue
+        a = max(0, int(s["start_ms"] / 1000 * fps))
+        b = min(n - 1, int(s["end_ms"] / 1000 * fps))
+        if b - a < 2:
+            continue
+        cen = []
+        for i in range(a, b + 1):
+            tot = cx = cy = 0.0
+            for c in range(ncells):
+                e = cell_series[c][i]
+                if e <= 0:
+                    continue
+                r, col = divmod(c, grid)
+                tot += e; cx += col * e; cy += r * e
+            if tot > 1e-6:
+                cen.append((cx / tot, cy / tot))
+        if len(cen) < 2:
+            continue
+        k = max(1, len(cen) // 5)
+        sx = sum(x for x, _ in cen[:k]) / k
+        sy = sum(y for _, y in cen[:k]) / k
+        ex = sum(x for x, _ in cen[-k:]) / k
+        ey = sum(y for _, y in cen[-k:]) / k
+        dx, dy = (ex - sx) / grid, (ey - sy) / grid
+        s["direction"] = {"dx": round(dx, 2), "dy": round(dy, 2), "label": _dir_label(dx, dy)}
+
+
 def analyze(video: str, out_dir: Path, *, fps="auto", thumb: int = DEFAULT_THUMB,
             grid: int = DEFAULT_GRID, max_samples: int = DEFAULT_MAX_SAMPLES,
             start: float | None = None, end: float | None = None) -> dict:
@@ -707,6 +825,7 @@ def analyze(video: str, out_dir: Path, *, fps="auto", thumb: int = DEFAULT_THUMB
     # in-section animations aren't swamped and mislabeled as holds.
     motion_ref = robust_motion_ref(energy)
     segments = build_segments(energy, use_fps, fades, signal.get("freezes", []), motion_ref)
+    attach_directions(segments, a.get("cell_series"), grid, use_fps)
     beats = find_beats(energy, use_fps, motion_ref) if energy else {"peaks": [], "keyposes": []}
     grid_summary = summarize_grid(a["cell_series"], use_fps, grid) if a.get("cell_series") else \
         {"rows": grid, "cols": grid, "active_cells": [], "stagger_hint": None}

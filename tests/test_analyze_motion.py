@@ -198,6 +198,26 @@ class TestMotionAnalysis(unittest.TestCase):
         self.assertLess(ref, 100, "reference must not be dominated by the spikes")
         self.assertGreater(ref, 1)
 
+    def test_fit_easing_recovers_curve(self):
+        # constant speed -> linear; accelerating speed -> ease-in; decelerating -> ease-out
+        self.assertEqual(analyze_motion.fit_easing([1.0] * 30)["ease"], "linear")
+        self.assertEqual(analyze_motion.fit_easing([float(i) for i in range(1, 31)])["ease"], "ease-in")
+        self.assertEqual(analyze_motion.fit_easing([float(i) for i in range(30, 0, -1)])["ease"], "ease-out")
+
+    def test_measured_bezier_on_clips(self):
+        seg = [s for s in self.motion["ease"]["segments"] if s["kind"] == "move"][0]
+        self.assertEqual(len(seg["bezier"]), 4)
+        self.assertEqual(seg["ease"], "ease-in")
+        lin = [s for s in self.motion["linear"]["segments"] if s["kind"] == "move"][0]
+        self.assertEqual(lin["bezier"], [0.0, 0.0, 1.0, 1.0])
+
+    def test_motion_direction_left_to_right(self):
+        # the box slides left->right in each of these ground-truth clips
+        for name in ("ease", "linear", "hold"):
+            mv = [s for s in self.motion[name]["segments"] if s["kind"] == "move"]
+            self.assertTrue(mv, name)
+            self.assertEqual((mv[0].get("direction") or {}).get("label"), "right", name)
+
 
 if __name__ == "__main__":
     unittest.main()

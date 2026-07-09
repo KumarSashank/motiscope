@@ -3,6 +3,22 @@
 All notable changes to motiscope are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses semver.
 
+## [0.3.0] — unreleased
+
+Deeper motion measurement (sharpening the core recreate-a-single-animation use).
+
+### Added
+- **Measured easing.** Each move segment now carries a fitted **`cubic-bezier`** — the
+  running integral of the speed curve matched to a real easing curve — not just a
+  coarse class. `recreate` uses the exact bezier (CSS `cubic-bezier`, Framer array,
+  GSAP `CustomEase`) instead of a token default.
+- **Motion direction.** Each move/fade segment gets a travel direction
+  (`up`/`down`/`left`/`right`/diagonal/`in-place`) from the motion-grid energy centroid,
+  so the recreation gets the sign of the translate (and knows `in-place` scale/fade vs a
+  real move) rather than guessing from frames.
+- Report shows a `cubic-bezier` and `dir` column per segment; the spec schema and the
+  easing map are updated to prefer the measured values.
+
 ## [0.2.0] — unreleased
 
 Fixes from the first real-world landing-page test (a Dribbble concept walkthrough).

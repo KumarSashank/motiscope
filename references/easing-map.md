@@ -22,6 +22,24 @@ single `move` segment, the *shape* of that curve is the easing:
 a `dominant_easing`. Trust those for timing; use the frames only to confirm the
 element's start/end transform values.
 
+## Prefer the measured bezier
+
+Each move segment now carries a **fitted `cubic-bezier`** (in `motion.json` →
+`segments[].bezier`, and the report's `cubic-bezier` column) — the running integral of
+the speed curve matched to a real easing curve. **Use it directly** when the target
+supports arbitrary cubic-beziers:
+
+- **CSS / Web Animations:** `animation-timing-function: cubic-bezier(x1,y1,x2,y2)` — use the exact values.
+- **GSAP:** `CustomEase.create("m", "M0,0 C…")` from the bezier, or the mapped token below.
+- **Framer:** `ease: [x1, y1, x2, y2]` (Framer accepts a bezier array).
+- **Lottie:** derive the keyframe `i`/`o` handles from the control points.
+
+Fall back to the neutral-token → named-ease table below when the target needs a named
+ease, or for `spring` (which a single bezier can't represent — use the target's spring).
+
+Each move/fade segment also has a **`direction`** (`up`/`down`/`left`/`right`/diagonal/
+`in-place`) — it sets the sign of the translate (`in-place` ⇒ no translate, scale/opacity only).
+
 ## Neutral token → target value
 
 | Neutral | GSAP `ease` | CSS `cubic-bezier` | Framer Motion | Lottie (bezier out/in) |

@@ -116,7 +116,8 @@ Emit a normalized, target-agnostic spec and show it to the user. Schema:
   "scroll_driven": false,
   "elements": [{ "id": "card", "role": "card", "confidence": "estimated" }],
   "timeline": [
-    { "target": "card", "start_ms": 0, "dur_ms": 400, "ease": "power2.out",
+    { "target": "card", "start_ms": 0, "dur_ms": 400, "ease": "ease-out",
+      "bezier": [0.16, 1, 0.3, 1], "direction": "up",
       "props": { "opacity": [0, 1], "y": [24, 0], "scale": [0.9, 1] },
       "source": { "easing": "measured", "props": "visual-estimate" } }
   ],
@@ -129,7 +130,9 @@ Rules:
 - **Timing, segment boundaries, easing shape, stagger direction, holds and fades are measured** — take them from `manifest.json` / `report.md`.
 - **Which elements move, and transform magnitudes (px / scale / rotation / opacity), colors, and exact overshoot are visually estimated** — read them off the frames and mark them `"visual-estimate"` in `source`.
 - Be honest about a leading `hold`: a gentle ease-in's slow start can read as a short hold because sub-pixel motion is invisible in the analysis thumbnails. Check the first two frames — if the element already moved a little, treat it as the start of the ease, not a hard delay.
-- Keep `ease` values as neutral tokens (`ease-in`, `ease-out`, `ease-in-out`, `linear`, `spring`, `hold`); `recreate` maps them per target.
+- **Use the measured `bezier`.** Each move segment now has a fitted `cubic-bezier` (the report's `cubic-bezier` column) — carry it into the spec's `bezier` field and use it directly in the output (CSS `cubic-bezier(...)`, GSAP `CustomEase`). It's more precise than the neutral token; keep the token too as a fallback/label.
+- **Use the measured `direction`.** Each move/fade segment has a travel direction (`up`/`down`/`left`/`right`/diagonal/`in-place`) from the motion grid — it tells you the sign of the translate (e.g. `up` ⇒ `y: [24, 0]`; `in-place` ⇒ scale/opacity only, no translate).
+- Keep `ease` values as neutral tokens (`ease-in`, `ease-out`, `ease-in-out`, `linear`, `spring`, `hold`) alongside the bezier; `recreate` maps them per target.
 - **Loops:** if the report flags a loop, set `"loop": true` and use `period_ms` as the cycle length. The detected period can be a *half*-cycle for back-and-forth motion — check the frames: returns-to-start-then-repeats ⇒ a full loop; out-and-back ⇒ yoyo at that period. For a clean recreation of a long looping clip, re-run analyze focused on a single period (`--start 0 --end <period>`).
 
 ## Step 5 — offer to recreate

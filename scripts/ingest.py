@@ -47,12 +47,15 @@ def _sparkline(values: list[float], width: int = 50) -> str:
 def _segment_table(segments: list[dict]) -> str:
     if not segments:
         return "_No segments detected._\n"
-    rows = ["| # | kind | start | end | dur | easing | conf |",
-            "|---|------|-------|-----|-----|--------|------|"]
+    rows = ["| # | kind | start | end | dur | easing | cubic-bezier | dir | conf |",
+            "|---|------|-------|-----|-----|--------|--------------|-----|------|"]
     for i, s in enumerate(segments):
         dur = (s["end_ms"] - s["start_ms"]) / 1000
+        bez = s.get("bezier")
+        bez_s = f"`{','.join(str(v) for v in bez)}`" if bez else "—"
+        direction = (s.get("direction") or {}).get("label", "—")
         rows.append(f"| {i} | {s['kind']} | {s['start_ms']/1000:.2f}s | {s['end_ms']/1000:.2f}s "
-                    f"| {dur:.2f}s | {s.get('ease','—')} | {s.get('ease_confidence','—')} |")
+                    f"| {dur:.2f}s | {s.get('ease','—')} | {bez_s} | {direction} | {s.get('ease_confidence','—')} |")
     return "\n".join(rows) + "\n"
 
 
