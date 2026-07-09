@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works — motiscope</title>
+<meta name="description" content="A screenshot has no time axis. motiscope measures the time — a motion-energy curve, a percentile-anchored hold threshold, and easing recovered by integrating speed — and leaves perception to the model.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A1%3C/text%3E%3C/svg%3E">
+<style>
+  :root{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);
+    --ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399;--btn:#6366f1;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--maxw:900px}
+  @media (prefers-color-scheme: light){:root{--ground:#f6f7fb;--panel:#fff;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);--ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669}}
+  :root[data-theme="light"]{--ground:#f6f7fb;--panel:#fff;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);--ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669}
+  :root[data-theme="dark"]{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);--ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--ind);text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;background:color-mix(in oklab,var(--ind) 10%,transparent);padding:1px 5px;border-radius:4px}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;
+      font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);line-height:1.75}
+  pre code{background:none;padding:0}
+  .topbar{position:sticky;top:0;z-index:9;background:color-mix(in oklab,var(--ground) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:54px;gap:16px}
+  .brandmark{font-family:var(--mono);font-weight:600;letter-spacing:.5px;font-size:15px;display:flex;align-items:center;gap:9px}
+  .dot{width:9px;height:9px;border-radius:50%;background:conic-gradient(from 0deg,var(--ind),var(--fuc),var(--cya),var(--ind));box-shadow:0 0 10px color-mix(in oklab,var(--fuc) 60%,transparent);animation:spin 6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  nav{display:flex;align-items:center;gap:18px} nav a{color:var(--ink-dim);font-size:14px} nav a:hover{color:var(--ink);text-decoration:none}
+  .toggle{font-family:var(--mono);font-size:12px;color:var(--ink-dim);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;cursor:pointer}
+  header{padding:52px 0 8px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--fuc);margin:0 0 14px}
+  h1{font-size:clamp(30px,5.4vw,46px);margin:0 0 14px;letter-spacing:-.6px;line-height:1.12}
+  .lead{color:var(--ink-dim);font-size:19px;max-width:62ch;margin:0}
+  .promise{margin:26px 0 0;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cya);border-radius:10px;padding:16px 18px;font-size:14.5px;color:var(--ink-dim)}
+  .promise b{color:var(--ink)}
+  section{padding:46px 0;border-top:1px solid var(--hair)}
+  h2{font-size:24px;margin:0 0 6px;letter-spacing:-.2px} h3{font-size:17px;margin:32px 0 8px}
+  .sub{color:var(--ink-faint);font-family:var(--mono);font-size:12.5px;margin:0 0 22px}
+  p{color:var(--ink-dim);font-size:15.5px;max-width:68ch}
+  p b,li b{color:var(--ink)}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;padding:10px;line-height:0}
+  .stage img{width:100%;height:auto;display:block}
+  figure{margin:22px 0 0}
+  figcaption{line-height:1.6;color:var(--ink-faint);font-size:13px;margin-top:12px;max-width:68ch}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin-top:14px;display:block;overflow-x:auto}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--hair);vertical-align:top}
+  th{color:var(--ink);font-weight:600}
+  td{color:var(--ink-dim)}
+  ul{color:var(--ink-dim);font-size:15.5px;padding-left:20px;max-width:68ch} li{margin:9px 0}
+  .callout{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--fuc);border-radius:10px;
+           padding:16px 18px;color:var(--ink-dim);font-size:14.5px;margin-top:20px;max-width:68ch}
+  .callout b{color:var(--ink)}
+  .pull{font-size:19px;color:var(--ink);border-left:3px solid var(--cya);padding:4px 0 4px 18px;margin:26px 0;max-width:62ch;line-height:1.5}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:700px){.split{grid-template-columns:1fr}}
+  .cta{display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px;border:1px solid transparent;background:var(--btn);color:#fff}
+  .cta.ghost{background:var(--panel);color:var(--ink);border-color:var(--line)}
+  .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+  footer{padding:40px 0 64px;border-top:1px solid var(--hair);color:var(--ink-faint);font-family:var(--mono);font-size:12.5px}
+  @media (prefers-reduced-motion:reduce){.dot{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <a class="brandmark" href="index.html" style="color:var(--ink)"><span class="dot"></span>motiscope</a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="https://github.com/KumarSashank/motiscope">GitHub</a>
+    <button class="toggle" id="tg">&#9680; theme</button>
+  </nav>
+</div></div>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">under the hood</p>
+    <h1>A screenshot has no time axis.</h1>
+    <p class="lead">That one sentence is the whole design. Everything motiscope does follows
+      from it — and everything it <em>refuses</em> to do follows from it too.</p>
+    <div class="promise">
+      <b>Nothing here is a claim you have to take on faith.</b> Every constant, filter string
+      and figure on this page is read out of the code, and the repo ships ffmpeg-synthesised
+      clips with known ground truth so you can check the maths yourself. The exact-numbers
+      version lives in <a href="https://github.com/KumarSashank/motiscope/blob/main/docs/how-it-works.md">how-it-works.md</a>.
+    </div>
+  </header>
+
+  <section>
+    <h2>The problem</h2>
+    <p class="sub">why &ldquo;AI, copy this animation&rdquo; doesn&rsquo;t work</p>
+    <p>A still frame shows you every shape, every colour and every position. It tells you
+      <b>nothing about time</b>. Duration, easing, the gap between two beats, the period of a
+      loop — none of it survives a screenshot. So a vision model can <em>describe</em> an
+      animation it cannot <em>reproduce</em>, because reproduction needs the one axis a picture
+      doesn&rsquo;t have.</p>
+    <p>motiscope does exactly the one thing a model can&rsquo;t, and refuses to do anything a
+      model does better.</p>
+    <div class="split">
+      <div class="callout" style="border-left-color:var(--ind)">
+        <b>The numbers measure the WHEN.</b><br>
+        Timing, easing curves, segment boundaries, stagger intervals, loop period.
+        Dense, exact, and effectively free.
+      </div>
+      <div class="callout" style="border-left-color:var(--good)">
+        <b>The frames carry the WHAT.</b><br>
+        A handful of curated keyframes. The model looks and names the elements and
+        the effect — with no fixed vocabulary.
+      </div>
+    </div>
+    <p style="margin-top:22px">Everything below is in service of that split.</p>
+  </section>
+
+  <section>
+    <h2>Two artifacts, wildly different costs</h2>
+    <p class="sub">this is why the analysis can afford to be dense</p>
+    <table>
+      <tr><th>Artifact</th><th>Sampling</th><th>Cost</th></tr>
+      <tr><td>Motion-energy curve, motion grid, ffmpeg signals</td><td>native fps (capped at 60, &le;1200 samples)</td><td><b>zero image tokens</b> — it&rsquo;s arithmetic</td></tr>
+      <tr><td>Curated keyframes</td><td>8&ndash;48 PNGs after dedup</td><td>~300&ndash;400 image tokens each</td></tr>
+    </table>
+    <p>Frame count tracks <b>motion complexity</b>, not video length. A 10-second clip
+      typically yields about ten frames. The numeric pass can be as dense as physics allows,
+      because it costs nothing to look.</p>
+  </section>
+
+  <section>
+    <h2>Pass A &mdash; the motion-energy curve</h2>
+    <p class="sub">one decode, 32&times;32 grayscale thumbnails, mean absolute difference</p>
+    <pre><code>ffmpeg -i &lt;video&gt; -vf "fps=&lt;native&gt;,scale=32:32,format=gray" -f rawvideo -</code></pre>
+    <p>Energy at frame <em>i</em> is the mean absolute difference against frame <em>i&minus;1</em>.
+      No pixels ever reach Python at full size. That series is the source of truth for
+      everything temporal.</p>
+    <figure>
+      <div class="stage">
+        <img src="figures/energy-curve.svg" alt="The ambient loop's motion-energy curve over 2.28 seconds, with a dashed hold threshold near the bottom and the peak marked at 1.09 seconds.">
+      </div>
+      <figcaption>The ambient-loop example, real data: 137 samples at 60fps across 2.28s.
+        Above the dashed line is motion; below it is a hold. Cost to produce: zero image tokens.</figcaption>
+    </figure>
+
+    <h3>Localized energy &mdash; why small elements don&rsquo;t vanish</h3>
+    <p>A whole-frame average is the wrong statistic. One button sliding across a 1280&times;720
+      page moves a rounding error&rsquo;s worth of pixels; average that over the frame and it reads
+      as <em>nothing happened</em>.</p>
+    <p>So the frame is split into an 8&times;8 grid, and the signal is the mean of the
+      <b>most active 10% of cells</b> — not of all of them. On the ambient loop, straight from
+      its <code>motion.json</code>:</p>
+    <table>
+      <tr><th>Signal</th><th>Mean energy</th></tr>
+      <tr><td>Whole-frame average</td><td><code>1.763</code></td></tr>
+      <tr><td>Localized (top-K cells)</td><td><code>6.998</code></td></tr>
+    </table>
+    <p>A <b>4&times; amplification</b> of exactly the thing you care about. This wasn&rsquo;t
+      theoretical: three cards animating on a 1280&times;720 canvas were being classified as
+      <code>hold</code> before it existed.</p>
+
+    <h3>The hold threshold, and why it isn&rsquo;t a fraction of the peak</h3>
+    <pre><code>motion_ref = max(percentile_75(energy), 0.05)
+threshold  = max(0.05, 0.18 &times; motion_ref)</code></pre>
+    <p>The 75th percentile, <b>not the maximum</b>. A hard cut or a full-screen fade produces
+      near-maximal energy. Anchor the threshold to the peak and one 0.27-second transition
+      raises the bar above every real element animation in the clip — which then all report
+      as <code>hold</code>.</p>
+    <div class="callout">
+      <b>This is a bug this project shipped and then fixed.</b> On a landing-page walkthrough the
+      peak-anchored threshold was <code>24.5</code> and the analysis found <b>zero</b> move
+      segments. With a percentile-anchored reference the threshold fell to <code>1.55</code>
+      and the animations appeared.
+    </div>
+  </section>
+
+  <section>
+    <h2>Pass B &mdash; ffmpeg signal filters</h2>
+    <p class="sub">a second decode, five filters, parsed from stderr</p>
+    <table>
+      <tr><th>Filter</th><th>What it gives</th><th>Note</th></tr>
+      <tr><td><code>scdet</code></td><td>hard cuts</td><td>&asymp;0 on single-shot UI animations — expected</td></tr>
+      <tr><td><code>blackdetect</code> + <code>signalstats</code></td><td>fades, brightness ramps</td><td>proxy for global opacity</td></tr>
+      <tr><td><code>freezedetect</code></td><td>whole-frame stillness</td><td><b>confirmation only</b></td></tr>
+      <tr><td><code>siti</code></td><td>spatial / temporal information</td><td>&rarr; content profile</td></tr>
+    </table>
+    <p><code>freezedetect</code> is deliberately demoted. It measures <em>whole-frame</em>
+      stillness, so on a large canvas it fires while a small element is mid-animation. It may
+      <em>confirm</em> a hold the energy curve already found; it may never turn a
+      <code>move</code> into a <code>hold</code>. Letting it do so was a bug.</p>
+  </section>
+
+  <section>
+    <h2>Easing &mdash; the part people assume is impossible</h2>
+    <p class="sub">you do not need to see the element to measure how it accelerated</p>
+    <p>Energy is mean pixel change per frame, which is a proxy for <b>speed</b>. Integrate
+      speed and you get <b>displacement</b>. So:</p>
+    <p class="pull">The running integral of the energy curve, normalised, <em>is</em> the
+      segment&rsquo;s displacement-vs-time curve — which is exactly what a CSS timing function
+      describes.</p>
+    <p>Normalise it, then match against a library of seven real curves and keep the closest by
+      RMSE. The output is a genuine <code>cubic-bezier</code>, not a coarse label — usable
+      directly as CSS <code>cubic-bezier(...)</code>, a Framer array, or a GSAP
+      <code>CustomEase</code>.</p>
+    <figure>
+      <div class="stage" style="max-width:560px;margin:0 auto">
+        <img src="figures/easing-fit.svg" alt="Displacement against time: the measured curve lies on top of the x-squared ground truth, while the fitted cubic-bezier runs slightly above both.">
+      </div>
+      <figcaption>Read this one carefully, because it shows the strength <em>and</em> the limit.</figcaption>
+    </figure>
+    <ul>
+      <li>The <b>measured</b> curve lies on top of the <b>ground truth</b>.
+        <code>tests/test-ease.mp4</code> is synthesised so that position &prop; <em>t</em>&sup2;,
+        and the integral recovers <em>t</em>&sup2; from nothing but frame differences.
+        The mechanism is sound.</li>
+      <li>The <b>fitted</b> bezier is the nearest curve <em>in the library</em>, not a perfect
+        match — <code>rmse 0.047</code>. motiscope recovers the easing <b>class and shape</b>
+        faithfully. It does not recover the author&rsquo;s exact control points, and it never
+        claims to.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Frame curation</h2>
+    <p class="sub">the only step that costs money</p>
+    <p>Candidate timestamps are the union of <code>t=0</code>, <code>t=end</code>, every segment
+      boundary, the energy-curve extrema (keyposes and peaks), and a sparse uniform backbone.
+      Then each candidate is reduced to a 16&times;16 grayscale thumbnail and dropped if it is
+      within a mean-absolute-difference of <code>2.0</code> of the frame already kept. What
+      survives is evenly sampled down to the preset&rsquo;s budget.</p>
+    <table>
+      <tr><th>Preset</th><th>Frames</th><th>Resolution</th><th>For</th></tr>
+      <tr><td><code>draft</code></td><td>12</td><td>512px</td><td>quick look, tight budget</td></tr>
+      <tr><td><code>balanced</code> <em>(default)</em></td><td>32 (usually 8&ndash;20 after dedup)</td><td>640px</td><td>most cases</td></tr>
+      <tr><td><code>detailed</code></td><td>48</td><td>960px</td><td>dense sequences, reading on-screen text</td></tr>
+      <tr><td><code>landing</code></td><td>44</td><td>1280px</td><td>web walkthroughs — each section plus its motion</td></tr>
+    </table>
+
+    <h3>Auto-decompose</h3>
+    <p>For clips of <b>8 seconds or more</b> with <b>two or more motion beats</b>, the budget
+      follows the motion instead of the clock. Every <code>move</code> segment is drilled
+      densely; every <code>hold</code> gets one representative frame. Move segments are
+      allocated frames in proportion to <code>duration &times; peak_energy</code>, so a fast,
+      intense beat earns more frames than a slow one.</p>
+    <div class="callout">
+      <b>Transitions are capped at two frames</b> (three if longer than half a second), because a
+      fade is monotonic — its endpoints tell you everything. Without that cap, a single
+      0.27-second fade once consumed <b>33 of 48 frames</b>, leaving the actual animations
+      with nothing.
+    </div>
+  </section>
+
+  <section>
+    <h2>Loop detection</h2>
+    <p class="sub">autocorrelation, with three guards against wishful thinking</p>
+    <p>The strongest autocorrelation lag above a minimum period is the candidate loop length.
+      A loop is only reported if the clip is <b>mostly moving</b> (a static shot with one
+      periodic blip is not a loop), the peak correlation is at least <code>0.7</code>, and the
+      <b>second harmonic</b> also correlates — a one-off burst does not repeat at 2&times;.</p>
+    <p>Two caveats stated up front. Energy is speed-based, so <b>back-and-forth motion reports a
+      period that is half the visual cycle</b>; the caller is told, so recreation can choose
+      <code>repeat</code> versus <code>yoyo</code>. And a <b>constant-velocity loop</b> — a
+      uniform rotation — has flat energy and is intentionally <em>not</em> detected. There is no
+      periodicity in the signal to find.</p>
+  </section>
+
+  <section>
+    <h2>What motiscope deliberately does not do</h2>
+    <p class="sub">the restraint is the feature</p>
+    <p>It does <b>not classify animation types.</b> There is no enum of
+      <code>fade | slide | scale</code>. The model looks at the frames and names what it sees —
+      a mask reveal, a path draw, a morph, a 3D flip, a text split, particles, a clip-path wipe.
+      Any hand-coded taxonomy would be a ceiling on what can be recreated.</p>
+    <p>Two features were built and then <b>removed</b> for exactly that reason:</p>
+    <ul>
+      <li><b>Per-element tracking.</b> A sweeping element and a staggered group are
+        indistinguishable in frame-differencing. Doing it properly needs optical flow. It was
+        reporting seven &ldquo;elements&rdquo; for one sliding box. Reverted.</li>
+      <li><b>Motion-direction detection.</b> The model reads direction off two frames instantly
+        and correctly. A grid-energy centroid was a worse oracle. Removed.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Measured vs estimated</h2>
+    <p class="sub">the distinction is load-bearing — trust the first column</p>
+    <table>
+      <tr><th>Measured (reliable)</th><th>Estimated (from frames)</th><th>Not recoverable</th></tr>
+      <tr><td>duration, fps, canvas size</td><td>which elements move</td><td>exact bezier control points</td></tr>
+      <tr><td>segment / beat boundaries</td><td>transform magnitudes (px, scale, deg)</td><td>sub-pixel &amp; sub-frame motion</td></tr>
+      <tr><td>easing shape + fitted bezier</td><td>colours under compression</td><td>true 3D and z-order</td></tr>
+      <tr><td>stagger interval</td><td>overshoot amount</td><td>spring stiffness</td></tr>
+      <tr><td>loop period</td><td>spring vs bezier</td><td>authored Lottie vector data</td></tr>
+    </table>
+    <p>One known artifact: a very gentle <b>ease-in can read as a short leading hold</b>, because
+      sub-pixel motion is invisible in a 32&times;32 thumbnail. The dominant easing is still
+      recovered — check the first frames.</p>
+  </section>
+
+  <section>
+    <h2>Verify it yourself</h2>
+    <p class="sub">the repo ships clips whose ground truth is known by construction</p>
+    <pre><code>bash tests/make_test_clip.sh
+python3 -m unittest tests.test_analyze_motion tests.test_integrations</code></pre>
+    <table>
+      <tr><th>Clip</th><th>Authored as</th><th>motiscope reports</th></tr>
+      <tr><td><code>test-ease.mp4</code></td><td>position &prop; <em>t</em>&sup2;</td><td><code>move</code> &middot; <code>ease-in</code> &middot; <code>cubic-bezier(0.42, 0, 1, 1)</code></td></tr>
+      <tr><td><code>test-linear.mp4</code></td><td>constant velocity</td><td><code>move</code> &middot; <code>linear</code></td></tr>
+      <tr><td><code>test-fade.mp4</code></td><td>alpha ramp, then still</td><td><code>fade-in</code>, then <code>hold</code></td></tr>
+      <tr><td><code>test-hold.mp4</code></td><td>move, then freeze</td><td><code>move</code>, then <code>hold</code></td></tr>
+      <tr><td><code>test-loop.mp4</code></td><td>looping overshoot</td><td>loop detected &middot; <code>back.out</code> &middot; <code>cubic-bezier(0.34, 1.56, 0.64, 1)</code></td></tr>
+    </table>
+    <div class="ctas">
+      <a class="cta" href="gallery.html">See it on real recordings &#8594;</a>
+      <a class="cta ghost" href="https://github.com/KumarSashank/motiscope/blob/main/docs/how-it-works.md">Exact constants &#8599;</a>
+      <a class="cta ghost" href="https://github.com/KumarSashank/motiscope/blob/main/scripts/analyze_motion.py">Read the source &#8599;</a>
+    </div>
+  </section>
+
+  <footer>motiscope · MIT · <a href="https://github.com/KumarSashank/motiscope">github.com/KumarSashank/motiscope</a>
+    · techniques adapted from <a href="https://github.com/bradautomates/claude-video">claude-video</a>
+    and <a href="https://github.com/jordanrendric/claude-video-vision">claude-video-vision</a></footer>
+</div>
+<script>
+  (function(){var r=document.documentElement,b=document.getElementById('tg');
+   function c(){return r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+   b.addEventListener('click',function(){r.dataset.theme=c()==='dark'?'light':'dark'})})();
+</script>
+</body>
+</html>

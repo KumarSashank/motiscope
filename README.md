@@ -93,6 +93,12 @@ motiscope does the one thing a vision model **can't** do from a screenshot — m
 So: **measured timing + curated frames → the model recreates it.** motiscope is a
 precise stopwatch and a smart frame-picker; the intelligence is Claude's.
 
+**Want the real mechanism?** [**How it works**](https://kumarsashank.github.io/motiscope/how-it-works.html)
+walks through the motion-energy curve, why the hold threshold is anchored to the 75th
+percentile instead of the peak, and how easing is recovered by integrating speed — with
+figures drawn from real pipeline output, and ground-truth clips you can run yourself.
+Exact constants: [`docs/how-it-works.md`](docs/how-it-works.md).
+
 ## The motions it reads & rebuilds
 
 <p align="center"><img src="docs/demo.svg" alt="staggered entrance and easing channels" width="100%"></p>

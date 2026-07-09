@@ -6,6 +6,17 @@ All notable changes to motiscope are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **How it works** — a deep explainer of the analysis, published two ways: a narrated
+  live page at `docs/how-it-works.html` (site theme, figures drawn from real pipeline
+  output) and `docs/how-it-works.md` with the exact constants, ffmpeg filter strings, and
+  limits. Covers the localized energy signal (4× amplification on the ambient loop:
+  `1.763` whole-frame vs `6.998` top-K), the percentile-anchored hold threshold and the
+  bug that motivated it, easing recovery by integrating the energy curve (verified against
+  a clip authored as position ∝ t²), auto-decompose, loop-detection guards, and what
+  motiscope deliberately refuses to do.
+- Two figures generated from real data: `docs/figures/energy-curve.svg` and
+  `docs/figures/easing-fit.svg`. Both readable on light and dark, and both render fully
+  when animations are disabled.
 - **Example: ambient geometric loop** — a 15-tile Bauhaus grid recreated from a 2.28s screen
   recording as a **14 KB animated SVG** (no JavaScript). Ships as a **live page** in the site
   theme at `docs/examples/ambient/`, not just a GIF: the page renders the actual output SVG,
