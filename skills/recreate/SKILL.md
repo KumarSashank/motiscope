@@ -43,7 +43,11 @@ Then `Read` the target guide and the easing map:
 
 ## Step 3 — generate the code
 
-Map the neutral spec to the target using the easing map, one timeline entry at a time (per-element `from`/`to`, `dur_ms`, `start_ms`/position, ease token, stagger).
+**Split of responsibility (mirror the spec):**
+- **Timing is measured — use it exactly.** `start_ms`, `dur_ms`, the `bezier`, stagger `each_ms`, loop `period_ms` come from motiscope's analysis; wire them verbatim (prefer the exact `cubic-bezier` over a named ease).
+- **The *effect* is yours — build what the spec's `animation` field and the frames describe.** You are **not** limited to opacity/translate/scale. If the animation is a mask/clip-path reveal, an SVG path draw, a morph, a 3D flip, a text split/typewriter, a blur or color shift, a parallax, a spring/physics bounce, or particles — **build that directly in the target**, going beyond the spec's simple `props` when needed. Re-`Read` the frames if you need to confirm the effect.
+
+Map each timeline entry to the target (per-element `from`/`to`, the measured `dur_ms`/`start_ms`/`bezier`, stagger), then implement the described effect.
 
 **GSAP defers to the official GSAP skills** — do not hand-roll GSAP guidance:
 - Invoke **gsap-timeline** to build the sequence (position parameter, nesting).

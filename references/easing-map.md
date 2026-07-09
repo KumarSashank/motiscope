@@ -37,8 +37,8 @@ supports arbitrary cubic-beziers:
 Fall back to the neutral-token → named-ease table below when the target needs a named
 ease, or for `spring` (which a single bezier can't represent — use the target's spring).
 
-Each move/fade segment also has a **`direction`** (`up`/`down`/`left`/`right`/diagonal/
-`in-place`) — it sets the sign of the translate (`in-place` ⇒ no translate, scale/opacity only).
+*(The bezier is a **timing** measurement. The animation's **direction** and type — up/down,
+scale, morph, draw, etc. — you read from the frames, not from the numbers.)*
 
 ## Neutral token → target value
 

@@ -211,13 +211,6 @@ class TestMotionAnalysis(unittest.TestCase):
         lin = [s for s in self.motion["linear"]["segments"] if s["kind"] == "move"][0]
         self.assertEqual(lin["bezier"], [0.0, 0.0, 1.0, 1.0])
 
-    def test_motion_direction_left_to_right(self):
-        # the box slides left->right in each of these ground-truth clips
-        for name in ("ease", "linear", "hold"):
-            mv = [s for s in self.motion[name]["segments"] if s["kind"] == "move"]
-            self.assertTrue(mv, name)
-            self.assertEqual((mv[0].get("direction") or {}).get("label"), "right", name)
-
 
 if __name__ == "__main__":
     unittest.main()

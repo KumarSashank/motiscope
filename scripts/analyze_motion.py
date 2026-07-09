@@ -745,51 +745,6 @@ def _apply_offset(result: dict, off: float) -> None:
         sig["brightness"]["times"] = [r3(t) for t in sig["brightness"]["times"]]
 
 
-def _dir_label(dx: float, dy: float, thr: float = 0.06) -> str:
-    h = "right" if dx > thr else "left" if dx < -thr else ""
-    v = "down" if dy > thr else "up" if dy < -thr else ""
-    if not h and not v:
-        return "in-place"
-    return "-".join(p for p in (v, h) if p)
-
-
-def attach_directions(segments: list[dict], cell_series, grid: int, fps: float) -> None:
-    """Attach a travel direction to each move/fade segment from the motion-grid energy
-    centroid (where change is concentrated) drifting over the segment. In-place motion
-    (scale/fade with no translation) reads as 'in-place'."""
-    if not cell_series:
-        return
-    n = len(cell_series[0])
-    ncells = len(cell_series)
-    for s in segments:
-        if s["kind"] not in ("move", "fade-in", "fade-out"):
-            continue
-        a = max(0, int(s["start_ms"] / 1000 * fps))
-        b = min(n - 1, int(s["end_ms"] / 1000 * fps))
-        if b - a < 2:
-            continue
-        cen = []
-        for i in range(a, b + 1):
-            tot = cx = cy = 0.0
-            for c in range(ncells):
-                e = cell_series[c][i]
-                if e <= 0:
-                    continue
-                r, col = divmod(c, grid)
-                tot += e; cx += col * e; cy += r * e
-            if tot > 1e-6:
-                cen.append((cx / tot, cy / tot))
-        if len(cen) < 2:
-            continue
-        k = max(1, len(cen) // 5)
-        sx = sum(x for x, _ in cen[:k]) / k
-        sy = sum(y for _, y in cen[:k]) / k
-        ex = sum(x for x, _ in cen[-k:]) / k
-        ey = sum(y for _, y in cen[-k:]) / k
-        dx, dy = (ex - sx) / grid, (ey - sy) / grid
-        s["direction"] = {"dx": round(dx, 2), "dy": round(dy, 2), "label": _dir_label(dx, dy)}
-
-
 def analyze(video: str, out_dir: Path, *, fps="auto", thumb: int = DEFAULT_THUMB,
             grid: int = DEFAULT_GRID, max_samples: int = DEFAULT_MAX_SAMPLES,
             start: float | None = None, end: float | None = None) -> dict:
@@ -825,7 +780,6 @@ def analyze(video: str, out_dir: Path, *, fps="auto", thumb: int = DEFAULT_THUMB
     # in-section animations aren't swamped and mislabeled as holds.
     motion_ref = robust_motion_ref(energy)
     segments = build_segments(energy, use_fps, fades, signal.get("freezes", []), motion_ref)
-    attach_directions(segments, a.get("cell_series"), grid, use_fps)
     beats = find_beats(energy, use_fps, motion_ref) if energy else {"peaks": [], "keyposes": []}
     grid_summary = summarize_grid(a["cell_series"], use_fps, grid) if a.get("cell_series") else \
         {"rows": grid, "cols": grid, "active_cells": [], "stagger_hint": None}

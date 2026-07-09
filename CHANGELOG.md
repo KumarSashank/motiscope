@@ -3,6 +3,30 @@
 All notable changes to motiscope are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses semver.
 
+## [0.4.0] — unreleased
+
+Refocus: the numbers measure *time*; the model does the *perception*.
+
+The pipeline was drifting into re-implementing perception (classifying animation types,
+per-element clustering, motion direction) that a vision model already does better from
+frames. Sharpened the division of labor:
+
+### Changed
+- **The numeric layer now owns only what a still can't show — timing.** It measures
+  durations, the per-segment easing **cubic-bezier** (from the velocity profile),
+  beat/segment boundaries, stagger *timing*, and loop period, and it curates the right
+  frames. That's the moat.
+- **Perception is handed to the model.** The spec and the `analyze`/`recreate` skills
+  are rewritten so Claude identifies the elements and — from the frames — *what kind of
+  animation* each is, with an **open vocabulary** (fade, slide, scale, mask reveal, path
+  draw, morph, 3D, text effect, particles, …). motiscope no longer classifies animation
+  types, so there's no fixed list to limit recreation.
+
+### Removed
+- In-code motion **direction** detection (perception the model reads better from frames).
+- The abandoned per-element clustering experiment (a sweep and a stagger are
+  indistinguishable in frame-differencing — needs optical flow, which is out of scope).
+
 ## [0.3.0] — unreleased
 
 Deeper motion measurement (sharpening the core recreate-a-single-animation use).

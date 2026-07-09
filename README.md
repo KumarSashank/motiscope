@@ -35,19 +35,24 @@ A Claude Code plugin dedicated to motion design. Pure Python (standard library) 
 
 <p align="center"><img src="docs/pipeline.svg" alt="pipeline: video → frames → energy → spec → code" width="100%"></p>
 
-motiscope splits the problem into two signals with very different cost:
+motiscope does the one thing a vision model **can't** do from a screenshot — measure
+*time* — and hands everything else to the model:
 
-1. **A dense, numeric motion analysis** — a per-frame *motion-energy curve* (sampled
-   at native/high fps, **not** capped at 2 fps) plus ffmpeg signal analysis
-   (`scdet`, `freezedetect`, `blackdetect`, `siti`, `signalstats`). Pure numbers —
-   effectively free — and the source of truth for **timing, easing, holds, fades,
-   stagger, and loops**.
-2. **A small set of curated PNG keyframes** (~24–48) chosen at motion-curve extrema,
-   segment boundaries, and fades. The model *sees* these to estimate **which elements
-   move and by how much**.
+1. **The numbers measure the WHEN.** A dense per-frame *motion-energy curve* (native
+   fps, effectively free) plus ffmpeg signal analysis (`scdet`, `freezedetect`,
+   `blackdetect`, `siti`, `signalstats`) give the exact **timing**: durations, the
+   per-segment **easing curve** (a real `cubic-bezier` fitted from the velocity
+   profile), beat/segment boundaries, stagger timing, and loop period. A still has no
+   time axis — so this is the part that can't be guessed. It's the moat.
+2. **The frames carry the WHAT.** motiscope curates the keyframes that matter (chosen
+   by the motion signal) and hands them to the model. Claude reads them with full
+   vision to identify the elements and *what kind of animation* each is — fade, slide,
+   scale, mask reveal, path draw, morph, 3D flip, text effect, whatever it sees.
+   **motiscope deliberately does not classify animation types** — the model is better
+   at that than any hand-coded taxonomy, so there's no fixed list to box you in.
 
-So easing shape is *measured*; transform magnitudes are *visually estimated*. The
-result is a target-agnostic **animation spec** that `recreate` renders into code.
+So: **measured timing + curated frames → the model recreates it.** motiscope is a
+precise stopwatch and a smart frame-picker; the intelligence is Claude's.
 
 ## The motions it reads & rebuilds
 

@@ -99,14 +99,19 @@ Other flags: `--frame-budget N` / `--resolution W` override the preset; `--forma
 
 ## Step 3 — read the analysis, then the frames
 
-1. `Read` the printed `report.md`. It contains the **motion-energy curve** (a sparkline), the **segment/beat table** (move / hold / fade with start/end and measured easing), the **stagger hint**, and the **content profile**.
-2. `Read` **every curated frame path in a single message** (parallel Read calls) so you see them together and in order. Each filename encodes `t=<seconds>` and why it was picked (`start`, `peak`, `keypose`, `holdstart`, `fadein`, `end`, …), so you can line each image up against the timeline.
+**The division of labor is the whole point:**
+- **The numbers give you the WHEN.** `report.md` measured the *timing* you can't see in a still: exact durations, the per-segment **easing curve** (a real cubic-bezier fitted from the velocity profile), the beat/segment boundaries, the stagger *timing* (~ms between items), and any loop period. Trust these — a screenshot has no time axis, so this is the one thing that isn't guessable.
+- **You give the WHAT.** The frames are yours to read with full vision. Identify the elements and — crucially — **what *kind* of animation each one is.** motiscope does **not** classify animation types, and you are **not** limited to fade/slide/scale: name whatever you actually see — a mask reveal, a path/line draw, a morph, a rotate/skew, a 3D flip, a text split/typewriter, a blur, a color shift, a parallax, a physics/spring bounce, particles, a clip-path wipe, anything. The pipeline deliberately leaves this to your perception because you're better at it than any hand-coded classifier.
 
-**Read easing from the curve, not the frames.** The per-segment energy shape (rising / decaying / bell / flat / overshoot) already tells you the easing — see `references/easing-map.md`. Use the frames to determine *what* moves and *by how much*, not the timing.
+Steps:
+1. `Read` the printed `report.md` for the measured timing (energy sparkline, segment/beat table with the fitted `cubic-bezier`, stagger timing, loop).
+2. `Read` **every curated frame in one message** (parallel Reads) so you see them in order. Filenames encode `t=<seconds>` + why each was picked, so you can line frames up against the measured timeline.
+
+**Read timing from the numbers; read everything else from the frames.**
 
 ## Step 4 — produce the animation spec
 
-Emit a normalized, target-agnostic spec and show it to the user. Schema:
+Emit a target-agnostic spec: a **timing skeleton (measured) + your visual reading (what each element is and does)**. Schema:
 
 ```json
 {
@@ -114,26 +119,25 @@ Emit a normalized, target-agnostic spec and show it to the user. Schema:
   "canvas": { "w": 800, "h": 600, "bg": "#ffffff" },
   "loop": false,
   "scroll_driven": false,
-  "elements": [{ "id": "card", "role": "card", "confidence": "estimated" }],
+  "elements": [{ "id": "card", "role": "card" }],
   "timeline": [
-    { "target": "card", "start_ms": 0, "dur_ms": 400, "ease": "ease-out",
-      "bezier": [0.16, 1, 0.3, 1], "direction": "up",
-      "props": { "opacity": [0, 1], "y": [24, 0], "scale": [0.9, 1] },
-      "source": { "easing": "measured", "props": "visual-estimate" } }
+    { "target": "card", "start_ms": 0, "dur_ms": 400,
+      "ease": "ease-out", "bezier": [0.16, 1, 0.3, 1],
+      "animation": "fade + slide up",
+      "props": { "opacity": [0, 1], "y": [24, 0] },
+      "source": { "timing": "measured", "everything_else": "seen" } }
   ],
-  "stagger": { "children": "card", "each_ms": 80, "from": "start" },
-  "notes": "hold 0.4-0.7s; brightness ramp 0-0.4s => global fade-in"
+  "stagger": { "children": "card", "each_ms": 80 },
+  "notes": "e.g. 'headline does a per-word mask reveal'; 'logo path draws in'"
 }
 ```
 
 Rules:
-- **Timing, segment boundaries, easing shape, stagger direction, holds and fades are measured** — take them from `manifest.json` / `report.md`.
-- **Which elements move, and transform magnitudes (px / scale / rotation / opacity), colors, and exact overshoot are visually estimated** — read them off the frames and mark them `"visual-estimate"` in `source`.
-- Be honest about a leading `hold`: a gentle ease-in's slow start can read as a short hold because sub-pixel motion is invisible in the analysis thumbnails. Check the first two frames — if the element already moved a little, treat it as the start of the ease, not a hard delay.
-- **Use the measured `bezier`.** Each move segment now has a fitted `cubic-bezier` (the report's `cubic-bezier` column) — carry it into the spec's `bezier` field and use it directly in the output (CSS `cubic-bezier(...)`, GSAP `CustomEase`). It's more precise than the neutral token; keep the token too as a fallback/label.
-- **Use the measured `direction`.** Each move/fade segment has a travel direction (`up`/`down`/`left`/`right`/diagonal/`in-place`) from the motion grid — it tells you the sign of the translate (e.g. `up` ⇒ `y: [24, 0]`; `in-place` ⇒ scale/opacity only, no translate).
-- Keep `ease` values as neutral tokens (`ease-in`, `ease-out`, `ease-in-out`, `linear`, `spring`, `hold`) alongside the bezier; `recreate` maps them per target.
-- **Loops:** if the report flags a loop, set `"loop": true` and use `period_ms` as the cycle length. The detected period can be a *half*-cycle for back-and-forth motion — check the frames: returns-to-start-then-repeats ⇒ a full loop; out-and-back ⇒ yoyo at that period. For a clean recreation of a long looping clip, re-run analyze focused on a single period (`--start 0 --end <period>`).
+- **`start_ms`, `dur_ms`, `ease`, `bezier`, stagger `each_ms`, loop `period_ms` are MEASURED** — copy them from `report.md`/`motion.json` verbatim. Especially: use the fitted **`cubic-bezier`** directly (CSS `cubic-bezier(...)`, Framer `[..]`, GSAP `CustomEase`) — it's the real curve, not a guess.
+- **`animation`, `elements`, `props` (magnitudes/direction/colors), and the animation *type* are YOURS from the frames** — describe the actual effect in the free-text `animation` field (open vocabulary), and put your best-estimate property values in `props`. Direction, scale, rotation, opacity, morph, draw, etc. all come from what you see, not from the numbers.
+- Be honest about a leading `hold`: a gentle ease-in's slow start can read as a short hold (sub-pixel motion is invisible in the analysis thumbnails). Check the first frames — if the element already moved slightly, treat it as the start of the ease, not a delay.
+- **Loops:** if the report flags a loop, set `"loop": true` with `period_ms`. It can be a *half*-cycle for back-and-forth motion — decide loop-vs-yoyo from the frames.
+- If an effect can't be reduced to `props` (a complex morph, a particle system, a shader), say so in `animation`/`notes` and let `recreate` build it directly from your description — don't force it into simple props.
 
 ## Step 5 — offer to recreate
 
