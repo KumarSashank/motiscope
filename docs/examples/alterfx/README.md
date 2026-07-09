@@ -6,7 +6,7 @@ from Dribbble**, rebuilt from a 10-second screen recording with
 
 - **Live recreation:** [`index.html`](./index.html) → <https://kumarsashank.github.io/motiscope/examples/alterfx/>
 - **Source:** a screen recording of the Dribbble shot (`source.gif` shows the first 5s).
-- **Original concept:** _Dribbble — link to be added; all credit to the original designer._
+- **Original concept:** [Landing Page Animation for AI Video Production Platform](https://dribbble.com/shots/26592174-Landing-Page-Animation-for-AI-Video-Production-Platform) on Dribbble — all credit to the original designer.
 
 > This is a **design-to-code study**, not a product. It is **not affiliated with**
 > the original designer or any company named "Alterfx." All credit for the visual
