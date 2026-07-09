@@ -1,9 +1,29 @@
-# motiscope
+<p align="center">
+  <img src="docs/hero.svg" alt="motiscope — motion-energy oscilloscope" width="100%">
+</p>
 
-**Recreate any web animation from a screen recording.** Drop a video of an
-animation you like — captured from a website, an app, a dribbble shot, anywhere —
-and motiscope measures its motion (timing, easing, sequencing) and helps Claude
-rebuild it as working **GSAP, CSS, Framer Motion, or Lottie/SVG** code.
+<h1 align="center">motiscope</h1>
+
+<p align="center">
+  <b>See the motion, recreate the animation.</b><br>
+  Drop a screen recording of an animation — get working <b>GSAP / CSS / Framer Motion / Lottie</b> code.
+</p>
+
+<p align="center">
+  <img alt="license MIT" src="https://img.shields.io/badge/license-MIT-6366f1">
+  <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude%20Code-plugin-818cf8">
+  <img alt="deps ffmpeg" src="https://img.shields.io/badge/deps-ffmpeg-e879f9">
+  <img alt="recreate targets" src="https://img.shields.io/badge/recreate-GSAP%20%C2%B7%20CSS%20%C2%B7%20Framer%20%C2%B7%20Lottie-22d3ee">
+</p>
+
+<p align="center">
+  <a href="https://kumarsashank.github.io/motiscope/"><b>🔗 Live site</b></a> ·
+  <a href="QUICKSTART.md">Quickstart</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#how-it-works">How it works</a>
+</p>
+
+---
 
 A Claude Code plugin dedicated to motion design. Pure Python (standard library) +
 `ffmpeg`. No cloud, no npm, no accounts required.
@@ -11,33 +31,31 @@ A Claude Code plugin dedicated to motion design. Pure Python (standard library) 
 > "I want this animation on my site." — drop the clip, run `/motiscope:analyze`,
 > then `/motiscope:recreate gsap`.
 
-## Demo
-
-![motiscope example](docs/example.gif)
-
-*The kind of motion motiscope reads and rebuilds — here, a staggered card entrance.
-Feed it a screen recording of an animation you like and it recreates the timing,
-easing, and stagger as code.*
-
-<!-- TODO: swap in a screen recording of /motiscope:analyze → /motiscope:recreate in action -->
-
-New here? See **[QUICKSTART.md](QUICKSTART.md)**.
-
 ## How it works
 
-motiscope splits the problem into two artifacts with very different cost:
+<p align="center"><img src="docs/pipeline.svg" alt="pipeline: video → frames → energy → spec → code" width="100%"></p>
+
+motiscope splits the problem into two signals with very different cost:
 
 1. **A dense, numeric motion analysis** — a per-frame *motion-energy curve* (sampled
    at native/high fps, **not** capped at 2 fps) plus ffmpeg signal analysis
-   (`scdet`, `freezedetect`, `blackdetect`, `siti`, `signalstats`). This is pure
-   numbers — effectively free — and it is the source of truth for **timing, easing,
-   holds, fades, and stagger**.
+   (`scdet`, `freezedetect`, `blackdetect`, `siti`, `signalstats`). Pure numbers —
+   effectively free — and the source of truth for **timing, easing, holds, fades,
+   stagger, and loops**.
 2. **A small set of curated PNG keyframes** (~24–48) chosen at motion-curve extrema,
-   segment boundaries, and fades. Claude *sees* these with its native vision to
-   estimate **which elements move and by how much**.
+   segment boundaries, and fades. The model *sees* these to estimate **which elements
+   move and by how much**.
 
 So easing shape is *measured*; transform magnitudes are *visually estimated*. The
 result is a target-agnostic **animation spec** that `recreate` renders into code.
+
+## The motions it reads & rebuilds
+
+<p align="center"><img src="docs/demo.svg" alt="staggered entrance and easing channels" width="100%"></p>
+
+Staggered entrances, easing curves, holds, fades, loops — read off the energy curve
+and rebuilt as code. *(These figures are animated SVGs — the same kind of motion
+motiscope recreates.)*
 
 ## Install
 
@@ -47,7 +65,8 @@ result is a target-agnostic **animation spec** that `recreate` renders into code
 ```
 
 Requires `ffmpeg` + `ffprobe`. Run `/motiscope:doctor` to check and (with your
-consent) install them (`brew install ffmpeg` on macOS).
+consent) install them (`brew install ffmpeg` on macOS). New here? See
+**[QUICKSTART.md](QUICKSTART.md)**.
 
 ## Usage
 
@@ -76,7 +95,7 @@ react / utils) for idiomatic results.
 
 ## Controlling frames & token cost
 
-Only the curated frames Claude *sees* cost tokens (~300–400 each); the numeric
+Only the curated frames the model *sees* cost tokens (~300–400 each); the numeric
 analysis is free. Frame count tracks **motion complexity**, capped by a preset — it
 does **not** grow with video length (a 10s clip typically yields ~10 frames).
 
@@ -91,21 +110,15 @@ does **not** grow with video length (a 10s clip typically yields ~10 frames).
 - **Sample fast content densely**: `--fps 20` lays a uniform backbone (a frame every
   ~50ms) across the window; near-identical frames still collapse unless `--no-dedup`.
 - **Auto-decompose** (default for clips ≥8s with ≥2 motion beats): finds the beats,
-  drills each motion segment densely, and skips holds — the budget follows the motion
-  instead of spreading thin. Frames are allocated **per beat by motion magnitude**
-  (a fast/intense beat gets more frames than a slow one). Force with `--decompose` /
-  disable with `--no-decompose`.
+  drills each motion segment densely, and skips holds — the budget follows the motion.
+  Frames are allocated **per beat by motion magnitude** (a fast/intense beat gets more
+  frames than a slow one). Force with `--decompose` / disable with `--no-decompose`.
 - **Loop detection**: looping animations are detected (energy-curve autocorrelation)
-  and reported with a period, so recreation can set `repeat` / `yoyo` and optionally
-  re-analyze a single cycle.
+  and reported with a period, so recreation can set `repeat` / `yoyo`.
 
 Small elements register correctly: the primary motion signal is *localized* (built
 from the most-active regions), so a small button/card/icon moving on a large page is
 detected as real motion rather than washing out in a whole-frame average.
-
-```
-python3 scripts/ingest.py video.mp4 --preset detailed --start 0:12 --end 0:15 --fps 20
-```
 
 ## Output layout
 
@@ -126,22 +139,22 @@ Recreated code is written to `motiscope-output/<target>/` by default.
 If a recreation needs an image or video asset, `recreate` will ask whether to point
 at your own file, generate one, or use a placeholder. Generation is a **mechanism
 only in v0.1**: the API-key config and consent flow are wired up, but the provider
-call is stubbed (it writes a labeled placeholder and makes no network request).
-Keys live in `~/.config/motiscope/.env` (mode `0600`), are never printed or
-written into generated code, and are never committed.
+call is stubbed (it writes a labeled placeholder and makes no network request). Keys
+live in `~/.config/motiscope/.env` (mode `0600`), are never printed, written into
+generated code, or committed.
 
-Supported provider slots: image — OpenAI, Stability, Replicate, fal; video —
-Runway, Replicate, fal.
+Supported provider slots: image — OpenAI, Stability, Replicate, fal; video — Runway,
+Replicate, fal.
 
-## Limitations (what's measured vs. estimated)
+## Limitations (measured vs. estimated)
 
 - **Measured (reliable):** duration, fps, segment boundaries, easing *shape*,
-  hold/fade detection, stagger *direction*.
+  hold/fade detection, stagger *direction*, loop period.
 - **Estimated (from frames):** which elements move, transform magnitudes (px / scale
   / rotation / opacity), colors under compression, exact overshoot, spring stiffness.
 - **Not recoverable from frames:** exact cubic-bezier control points (only the class),
-  sub-pixel / sub-frame motion, true 3D / z-order, authored Lottie vector data.
-  For production Lottie, author in After Effects.
+  sub-pixel / sub-frame motion, true 3D / z-order, authored Lottie vector data. For
+  production Lottie, author in After Effects.
 - A very gentle **ease-in**'s opening can read as a short hold because sub-pixel
   motion is invisible in the analysis thumbnails — the dominant easing is still
   recovered; check the first frames.
@@ -158,7 +171,7 @@ python3 -m unittest tests.test_analyze_motion
 
 ## Credits & license
 
-MIT. See [LICENSE](LICENSE). motiscope adapts frame-analysis techniques from two
-MIT projects — [claude-video](https://github.com/bradautomates/claude-video) and
+MIT. See [LICENSE](LICENSE). motiscope adapts frame-analysis techniques from two MIT
+projects — [claude-video](https://github.com/bradautomates/claude-video) and
 [claude-video-vision](https://github.com/jordanrendric/claude-video-vision) — with
 gratitude; see [ATTRIBUTION.md](ATTRIBUTION.md).

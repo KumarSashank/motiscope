@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 200" role="img" aria-label="motiscope pipeline: video to frames to energy to spec to code">
+  <defs>
+    <linearGradient id="pl" x1="0" x2="1120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#818cf8"/><stop offset=".5" stop-color="#e879f9"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <filter id="g2" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1120" height="200" rx="12" fill="#0a0c12"/>
+  <line x1="120" y1="100" x2="1000" y2="100" stroke="rgba(129,140,248,.18)" stroke-width="2"/>
+  <circle r="5" fill="#fff" filter="url(#g2)"><animateMotion dur="3.4s" repeatCount="indefinite" path="M120,100 L1000,100"/></circle>
+  <g font-family="ui-monospace,monospace" font-size="13" fill="#9aa0b4" text-anchor="middle">
+    <g><circle cx="120" cy="100" r="24" fill="#10131c" stroke="url(#pl)" stroke-width="2"/><text x="120" y="105" fill="#e7e9f2">&#9654;</text><text x="120" y="150">video</text></g>
+    <g><circle cx="340" cy="100" r="24" fill="#10131c" stroke="url(#pl)" stroke-width="2"/><text x="340" y="105" fill="#e7e9f2">&#9622;</text><text x="340" y="150">frames</text></g>
+    <g><circle cx="560" cy="100" r="24" fill="#10131c" stroke="url(#pl)" stroke-width="2"/><text x="560" y="106" fill="#e7e9f2" font-size="17">&#8767;</text><text x="560" y="150">energy</text></g>
+    <g><circle cx="780" cy="100" r="24" fill="#10131c" stroke="url(#pl)" stroke-width="2"/><text x="780" y="105" fill="#e7e9f2">{ }</text><text x="780" y="150">spec</text></g>
+    <g><circle cx="1000" cy="100" r="24" fill="#10131c" stroke="url(#pl)" stroke-width="2"/><text x="1000" y="105" fill="#e7e9f2">&lt;/&gt;</text><text x="1000" y="150">code</text></g>
+  </g>
+  <g fill="none" stroke="#e879f9" stroke-width="2.5">
+    <circle cx="120" cy="100" r="24" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="3.4s" repeatCount="indefinite" keyTimes="0;0.06;0.2"/></circle>
+    <circle cx="340" cy="100" r="24" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="3.4s" repeatCount="indefinite" keyTimes="0;0.28;0.42"/></circle>
+    <circle cx="560" cy="100" r="24" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="3.4s" repeatCount="indefinite" keyTimes="0;0.5;0.64"/></circle>
+    <circle cx="780" cy="100" r="24" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="3.4s" repeatCount="indefinite" keyTimes="0;0.72;0.86"/></circle>
+    <circle cx="1000" cy="100" r="24" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="3.4s" repeatCount="indefinite" keyTimes="0;0.94;1"/></circle>
+  </g>
+</svg>

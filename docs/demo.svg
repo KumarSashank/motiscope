@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 240" role="img" aria-label="staggered entrance and easing channels">
+  <rect width="1120" height="240" rx="12" fill="#0a0c12"/>
+  <text x="40" y="34" font-family="ui-monospace,monospace" font-size="12" letter-spacing="2" fill="#5c6380">STAGGER &#183; left&#8594;right</text>
+  <g>
+    <rect x="40" y="150" width="80" height="80" rx="12" fill="#818cf8"><animate attributeName="y" values="200;150;150;150;200" keyTimes="0;.14;.8;.9;1" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;.14;.8;.9;1" dur="4s" repeatCount="indefinite"/></rect>
+    <rect x="150" y="150" width="80" height="80" rx="12" fill="#e879f9"><animate attributeName="y" values="200;200;150;150;200" keyTimes="0;.08;.22;.86;1" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.08;.22;.86;1" dur="4s" repeatCount="indefinite"/></rect>
+    <rect x="260" y="150" width="80" height="80" rx="12" fill="#22d3ee"><animate attributeName="y" values="200;200;150;150;200" keyTimes="0;.16;.3;.92;1" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.16;.3;.92;1" dur="4s" repeatCount="indefinite"/></rect>
+  </g>
+  <line x1="470" y1="30" x2="470" y2="210" stroke="rgba(129,140,248,.14)"/>
+  <text x="520" y="34" font-family="ui-monospace,monospace" font-size="12" letter-spacing="2" fill="#5c6380">EASING &#183; measured from the curve</text>
+  <g font-family="ui-monospace,monospace" font-size="11" fill="#9aa0b4">
+    <g transform="translate(520,60)"><rect width="120" height="70" rx="6" fill="none" stroke="rgba(129,140,248,.12)"/><path d="M6,64 C6,20 60,6 114,6" fill="none" stroke="#818cf8" stroke-width="2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="1;0;0" dur="3s" repeatCount="indefinite" keyTimes="0;.7;1"/></path><text x="6" y="86">ease-out</text></g>
+    <g transform="translate(660,60)"><rect width="120" height="70" rx="6" fill="none" stroke="rgba(129,140,248,.12)"/><path d="M6,64 C60,64 114,50 114,6" fill="none" stroke="#e879f9" stroke-width="2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="1;0;0" dur="3s" begin=".2s" repeatCount="indefinite" keyTimes="0;.7;1"/></path><text x="6" y="86">ease-in</text></g>
+    <g transform="translate(800,60)"><rect width="120" height="70" rx="6" fill="none" stroke="rgba(129,140,248,.12)"/><path d="M6,64 C40,64 80,6 114,6" fill="none" stroke="#22d3ee" stroke-width="2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="1;0;0" dur="3s" begin=".4s" repeatCount="indefinite" keyTimes="0;.7;1"/></path><text x="6" y="86">in-out</text></g>
+    <g transform="translate(940,60)"><rect width="120" height="70" rx="6" fill="none" stroke="rgba(129,140,248,.12)"/><path d="M6,64 C30,6 50,-8 70,20 C84,38 100,10 114,14" fill="none" stroke="#34d399" stroke-width="2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="1;0;0" dur="3s" begin=".6s" repeatCount="indefinite" keyTimes="0;.7;1"/></path><text x="6" y="86">spring</text></g>
+  </g>
+</svg>

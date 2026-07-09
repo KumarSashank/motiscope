@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>motiscope — recreate web animations from a screen recording</title>
+<meta name="description" content="A motion-design plugin: drop a screen recording of an animation and motiscope reads its motion (timing, easing, stagger, loops) and rebuilds it as GSAP, CSS, Framer Motion, or Lottie code.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A1%3C/text%3E%3C/svg%3E">
+<meta property="og:title" content="motiscope — recreate web animations from a screen recording">
+<meta property="og:description" content="See the motion, recreate the animation. A motion-design plugin that rebuilds any animation from a screen recording as GSAP / CSS / Framer Motion / Lottie code.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kumarsashank.github.io/motiscope/">
+<meta property="og:image" content="https://raw.githubusercontent.com/KumarSashank/motiscope/main/docs/example.gif">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{
+    --ground:#0a0c12; --panel:#10131c; --panel-2:#161a26;
+    --line:rgba(129,140,248,.14); --hair:rgba(129,140,248,.09);
+    --ink:#e7e9f2; --ink-dim:#9aa0b4; --ink-faint:#5c6380;
+    --ind:#818cf8; --fuc:#e879f9; --cya:#22d3ee; --good:#34d399;
+    --btn:#6366f1;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --maxw:900px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{--ground:#f6f7fb;--panel:#fff;--panel-2:#eef1f7;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);
+      --ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669}
+  }
+  :root[data-theme="light"]{--ground:#f6f7fb;--panel:#fff;--panel-2:#eef1f7;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);
+    --ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669}
+  :root[data-theme="dark"]{--ground:#0a0c12;--panel:#10131c;--panel-2:#161a26;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);
+    --ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--ind);text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em}
+  img{max-width:100%}
+  .screen{border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    box-shadow:0 24px 60px -30px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.03);line-height:0}
+  .screen img{display:block;width:100%}
+
+  .topbar{position:sticky;top:0;z-index:9;background:color-mix(in oklab,var(--ground) 88%,transparent);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:54px;gap:16px}
+  .brandmark{font-family:var(--mono);font-weight:600;letter-spacing:.5px;font-size:15px;display:flex;align-items:center;gap:9px}
+  .dot{width:9px;height:9px;border-radius:50%;background:conic-gradient(from 0deg,var(--ind),var(--fuc),var(--cya),var(--ind));
+    box-shadow:0 0 10px color-mix(in oklab,var(--fuc) 60%,transparent);animation:spin 6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  nav{display:flex;align-items:center;gap:18px}
+  nav a{color:var(--ink-dim);font-size:14px} nav a:hover{color:var(--ink);text-decoration:none}
+  .toggle{font-family:var(--mono);font-size:12px;color:var(--ink-dim);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;cursor:pointer}
+  .toggle:hover{color:var(--ink);border-color:var(--ind)}
+  @media (max-width:620px){nav .hidesm{display:none}}
+
+  header.hero{padding:44px 0 8px}
+  h1.word{font-family:var(--mono);font-weight:600;font-size:clamp(38px,7vw,64px);letter-spacing:-1px;margin:26px 0 0;color:var(--ink);line-height:1;display:flex;align-items:center}
+  .cursor{display:inline-block;width:.46ch;height:.86em;margin-left:.14em;border-radius:2px;background:var(--cya);
+    box-shadow:0 0 10px color-mix(in oklab,var(--cya) 55%,transparent);animation:blink 1.1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .tagline{font-size:clamp(17px,2.6vw,21px);color:var(--ink-dim);max-width:36ch;margin:14px 0 0}
+  .tagline b{color:var(--ink);font-weight:600}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
+  .badge{font-family:var(--mono);font-size:11.5px;padding:4px 10px;border-radius:6px;border:1px solid var(--line);color:var(--ink-dim);display:inline-flex;gap:6px;align-items:center}
+  .badge b{color:var(--ink)} .badge .k{color:var(--ink-faint)}
+  .badge.accent{border-color:color-mix(in oklab,var(--ind) 45%,var(--line));background:color-mix(in oklab,var(--ind) 12%,transparent);color:var(--ink)}
+  .ctas{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0 0}
+  .cta{display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px;border:1px solid var(--line)}
+  .cta:hover{text-decoration:none}
+  .cta.primary{background:var(--btn);color:#fff;border-color:transparent}
+  .cta.primary:hover{filter:brightness(1.08)}
+  .cta.ghost{background:var(--panel);color:var(--ink)} .cta.ghost:hover{border-color:var(--ind)}
+  .install{margin:26px 0 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:13.5px;overflow-x:auto}
+  .install .p{color:var(--fuc)} .install .c{color:var(--ink)} .install .cm{color:var(--ink-faint)}
+
+  section{padding:56px 0;border-top:1px solid var(--hair)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--fuc);display:flex;align-items:center;gap:10px;margin:0 0 18px}
+  .eyebrow::before{content:"\223F";font-size:15px;color:var(--cya)}
+  h2{font-size:clamp(24px,4vw,32px);margin:0 0 14px;letter-spacing:-.4px;text-wrap:balance}
+  h2 + p.lead{color:var(--ink-dim);font-size:17px;max-width:62ch;margin:0}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:26px}
+  @media (max-width:640px){.two{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .card h3{margin:0 0 8px;font-size:16px;font-family:var(--mono);letter-spacing:.2px}
+  .card p{margin:0;color:var(--ink-dim);font-size:14.5px}
+  .measured{color:var(--cya)} .seen{color:var(--fuc)}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
+  @media (max-width:720px){.grid3{grid-template-columns:1fr 1fr}}
+  @media (max-width:460px){.grid3{grid-template-columns:1fr}}
+  .feat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .feat .ic{width:34px;height:34px;margin-bottom:12px}
+  .feat h3{margin:0 0 6px;font-size:15px} .feat p{margin:0;color:var(--ink-dim);font-size:13.5px;line-height:1.5}
+  figure{margin:26px 0 0} figcaption{font-family:var(--mono);font-size:12px;color:var(--ink-faint);margin-top:10px;text-align:center}
+  .targets{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .chip{font-family:var(--mono);font-size:13px;padding:8px 14px;border-radius:8px;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .chip i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  footer{padding:40px 0 64px;border-top:1px solid var(--hair);color:var(--ink-faint);font-family:var(--mono);font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  footer a{color:var(--ink-dim)}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <span class="brandmark"><span class="dot"></span>motiscope</span>
+  <nav>
+    <a class="hidesm" href="#how">How it works</a>
+    <a class="hidesm" href="#features">Features</a>
+    <a href="https://github.com/KumarSashank/motiscope">GitHub</a>
+    <button class="toggle" id="tg">&#9680; theme</button>
+  </nav>
+</div></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="screen"><img src="hero.svg" alt="motiscope motion-energy oscilloscope trace"></div>
+    <h1 class="word">motiscope<span class="cursor"></span></h1>
+    <p class="tagline">See the motion, recreate the animation. <b>Drop a screen recording — get working animation code.</b></p>
+    <div class="badges">
+      <span class="badge accent"><b>Claude Code plugin</b></span>
+      <span class="badge"><span class="k">v</span><b>0.1.0</b></span>
+      <span class="badge"><span class="k">license</span><b>MIT</b></span>
+      <span class="badge"><span class="k">deps</span><b>ffmpeg</b></span>
+      <span class="badge"><span class="k">targets</span><b>GSAP · CSS · Framer · Lottie</b></span>
+    </div>
+    <div class="ctas">
+      <a class="cta primary" href="#install">Install</a>
+      <a class="cta ghost" href="https://github.com/KumarSashank/motiscope">View on GitHub &#8599;</a>
+    </div>
+    <div class="install" id="install">
+      <div><span class="cm"># in a Claude Code session</span></div>
+      <div><span class="p">/plugin</span> <span class="c">marketplace add github:KumarSashank/motiscope</span></div>
+      <div><span class="p">/plugin</span> <span class="c">install motiscope@motiscope</span></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">what it does</div>
+    <h2>Two signals: one measured, one seen.</h2>
+    <p class="lead">motiscope reads the motion out of a recording the way a scope reads a waveform — then rebuilds it as code. Timing is measured off the curve; magnitudes are read off a few frames.</p>
+    <div class="two">
+      <div class="card"><h3 class="measured">&#8767; measured — free</h3><p>A dense per-frame <b>motion-energy curve</b> at native fps drives timing, easing, holds, fades, stagger and loop detection. Pure numbers, zero image tokens.</p></div>
+      <div class="card"><h3 class="seen">&#9622; seen — a few frames</h3><p>A small curated set of PNG keyframes (~24–48) the model actually looks at to estimate <b>which elements move and by how much</b> — flagged as estimates.</p></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="eyebrow">how it works</div>
+    <h2>The signal chain.</h2>
+    <figure>
+      <div class="screen"><img src="pipeline.svg" alt="pipeline: video, frames, energy, spec, code"></div>
+      <figcaption>recording → curated frames → motion-energy curve → target-agnostic spec → animation code</figcaption>
+    </figure>
+  </section>
+
+  <section id="features">
+    <div class="eyebrow">signature features</div>
+    <h2>Built for real UI motion.</h2>
+    <div class="grid3">
+      <div class="feat"><svg class="ic" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="6" fill="none" stroke="var(--ind)" stroke-width="2" opacity=".4"/><rect x="14" y="14" width="12" height="12" rx="3" fill="var(--fuc)"><animate attributeName="x" values="14;20;14" dur="2.4s" repeatCount="indefinite"/></rect></svg><h3>Localized energy</h3><p>Small buttons &amp; cards on a big page register as real motion instead of washing out in a whole-frame average.</p></div>
+      <div class="feat"><svg class="ic" viewBox="0 0 40 40"><g stroke="var(--cya)" stroke-width="2" fill="none"><rect x="5" y="24" width="6" height="10" rx="1"/><rect x="17" y="16" width="6" height="18" rx="1"/><rect x="29" y="8" width="6" height="26" rx="1"><animate attributeName="height" values="26;14;26" dur="2s" repeatCount="indefinite"/><animate attributeName="y" values="8;20;8" dur="2s" repeatCount="indefinite"/></rect></g></svg><h3>Presets &amp; focus</h3><p>draft / balanced / detailed frame budgets, plus <code>--start/--end</code> windows and <code>--fps</code> to catch fast content.</p></div>
+      <div class="feat"><svg class="ic" viewBox="0 0 40 40"><path d="M6,28 C12,28 12,12 20,12 C28,12 28,28 34,28" fill="none" stroke="var(--fuc)" stroke-width="2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"><animate attributeName="stroke-dashoffset" values="1;0;0" dur="2.4s" repeatCount="indefinite"/></path></svg><h3>Auto-decompose</h3><p>Long/complex clips split into beats; frames follow the motion (allocated by magnitude) and skip dead holds.</p></div>
+      <div class="feat"><svg class="ic" viewBox="0 0 40 40"><circle cx="20" cy="20" r="12" fill="none" stroke="var(--ind)" stroke-width="2" stroke-dasharray="52 24"><animateTransform attributeName="transform" type="rotate" from="0 20 20" to="360 20 20" dur="3s" repeatCount="indefinite"/></circle></svg><h3>Loop detection</h3><p>Autocorrelation finds repeats and reports the period — with loop-vs-yoyo guidance for recreation.</p></div>
+      <div class="feat"><svg class="ic" viewBox="0 0 40 40"><g fill="var(--cya)"><rect x="6" y="10" width="7" height="7" rx="2"><animate attributeName="opacity" values="0;1;1" dur="2.2s" begin="0s" repeatCount="indefinite" keyTimes="0;.2;1"/></rect><rect x="16" y="10" width="7" height="7" rx="2"><animate attributeName="opacity" values="0;1;1" dur="2.2s" begin=".2s" repeatCount="indefinite" keyTimes="0;.2;1"/></rect><rect x="26" y="10" width="7" height="7" rx="2"><animate attributeName="opacity" values="0;1;1" dur="2.2s" begin=".4s" repeatCount="indefinite" keyTimes="0;.2;1"/></rect></g></svg><h3>Stagger sense</h3><p>A motion grid infers sequencing direction and per-element timing (e.g. left-to-right, ~80ms each).</p></div>
+      <div class="feat"><svg class="ic" viewBox="0 0 40 40"><text x="8" y="26" font-family="ui-monospace,monospace" font-size="16" fill="var(--fuc)">&lt;/&gt;</text><circle cx="30" cy="12" r="3" fill="var(--cya)"><animate attributeName="opacity" values=".3;1;.3" dur="1.6s" repeatCount="indefinite"/></circle></svg><h3>4 code targets</h3><p>GSAP (defers to the official GSAP skills), CSS/WAAPI, Framer Motion, and Lottie/SVG.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">dogfood</div>
+    <h2>This site animates itself.</h2>
+    <p class="lead">These are the kind of motions motiscope reads and rebuilds — a staggered entrance and easing curves, drawn as scope channels.</p>
+    <figure>
+      <div class="screen"><img src="demo.svg" alt="staggered entrance and easing channels"></div>
+      <figcaption>staggered entrance + easing channels — authored as animated SVG</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="eyebrow">recreate into</div>
+    <h2>Pick a target.</h2>
+    <div class="targets">
+      <span class="chip"><i style="background:var(--ind)"></i>GSAP</span>
+      <span class="chip"><i style="background:var(--fuc)"></i>CSS / Web Animations</span>
+      <span class="chip"><i style="background:var(--cya)"></i>Framer Motion</span>
+      <span class="chip"><i style="background:var(--good)"></i>Lottie / SVG</span>
+    </div>
+    <div class="ctas">
+      <a class="cta primary" href="#install">Install motiscope</a>
+      <a class="cta ghost" href="https://github.com/KumarSashank/motiscope/blob/main/QUICKSTART.md">Quickstart &#8599;</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>motiscope · MIT · <a href="https://github.com/KumarSashank/motiscope">github.com/KumarSashank/motiscope</a></span>
+    <span>See the motion, recreate the animation.</span>
+  </footer>
+</div>
+
+<script>
+  (function(){
+    var root=document.documentElement, btn=document.getElementById('tg');
+    function cur(){ return root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); }
+    btn.addEventListener('click',function(){ root.dataset.theme = cur()==='dark'?'light':'dark'; });
+  })();
+</script>
+</body>
+</html>

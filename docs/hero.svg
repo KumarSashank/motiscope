@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" role="img" aria-label="motiscope motion-energy oscilloscope trace">
+  <defs>
+    <linearGradient id="trace" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#818cf8"/><stop offset=".52" stop-color="#e879f9"/><stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-40%" width="140%" height="180%">
+      <feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="scan" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="380" rx="14" fill="#0a0c12"/>
+  <g stroke="rgba(129,140,248,.10)" stroke-width="1">
+    <line x1="0" y1="95" x2="1200" y2="95"/><line x1="0" y1="190" x2="1200" y2="190"/><line x1="0" y1="285" x2="1200" y2="285"/>
+    <line x1="150" y1="0" x2="150" y2="380"/><line x1="300" y1="0" x2="300" y2="380"/><line x1="450" y1="0" x2="450" y2="380"/>
+    <line x1="600" y1="0" x2="600" y2="380"/><line x1="750" y1="0" x2="750" y2="380"/><line x1="900" y1="0" x2="900" y2="380"/><line x1="1050" y1="0" x2="1050" y2="380"/>
+  </g>
+  <text x="40" y="46" font-family="ui-monospace,monospace" font-size="13" letter-spacing="4" fill="#9aa0b4">MOTISCOPE · MOTION-ENERGY SCOPE</text>
+  <text x="1160" y="46" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#5c6380">CH1  60fps  ease-in&#8594;hold&#8594;spring</text>
+  <path id="curveP" d="M40,300 C120,300 150,250 200,215 S300,120 360,110 S470,175 520,300 C560,300 585,300 620,300 C680,300 690,150 740,120 C800,86 840,150 880,205 C930,275 980,150 1040,175 C1090,196 1130,250 1160,250"
+        fill="none" stroke="url(#trace)" stroke-width="3.2" stroke-linecap="round" filter="url(#glow)"
+        pathLength="1" stroke-dasharray="1" stroke-dashoffset="0">
+    <animate attributeName="stroke-dashoffset" dur="4s" repeatCount="indefinite"
+             keyTimes="0;0.42;1" values="1;0;0" calcMode="spline" keySplines="0.4 0 0.2 1;0 0 1 1"/>
+  </path>
+  <g fill="#e879f9">
+    <circle cx="360" cy="110" r="4"><animate attributeName="r" values="4;7;4" dur="2s" begin="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.3;1" dur="2s" begin="1.2s" repeatCount="indefinite"/></circle>
+    <circle cx="740" cy="120" r="4" fill="#22d3ee"><animate attributeName="r" values="4;7;4" dur="2s" begin="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.3;1" dur="2s" begin="2s" repeatCount="indefinite"/></circle>
+  </g>
+  <circle r="12" fill="url(#scan)"><animateMotion dur="4s" repeatCount="indefinite" keyTimes="0;0.42;1" keyPoints="0;1;1" calcMode="linear"><mpath href="#curveP"/></animateMotion></circle>
+  <circle r="3.4" fill="#fff"><animateMotion dur="4s" repeatCount="indefinite" keyTimes="0;0.42;1" keyPoints="0;1;1" calcMode="linear"><mpath href="#curveP"/></animateMotion></circle>
+</svg>
