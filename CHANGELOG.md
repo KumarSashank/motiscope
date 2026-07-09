@@ -3,6 +3,22 @@
 All notable changes to motiscope are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses semver.
 
+## [Unreleased]
+
+### Added
+- **Example: ambient geometric loop** — a 15-tile Bauhaus grid recreated from a 2.28s screen
+  recording as a **14 KB animated SVG** (no JavaScript). Ships as a **live page** in the site
+  theme at `docs/examples/ambient/`, not just a GIF: the page renders the actual output SVG,
+  and links the unedited `report.md` and the `generate.py` that built it.
+  Same shapes, same motion, new palette.
+  - The measured beat is **0.75s** (burst peaks 0.317 / 1.067 / 1.817s, agreeing across three
+    independent tiles), with easing whose peak angular speed is ~3.6× the mean.
+  - A worked demonstration of the project's thesis: the whole-frame readout says
+    `linear`, but per tile the velocity drops to near zero and ramps again. The numbers give
+    you the timing; you read the frames.
+  - Verified rather than asserted — the recreation was rendered back to video and re-measured
+    with the same code, reproducing the 0.75s beat.
+
 ## [1.0.0] — 2026-07-09
 
 **The first stable release, and the one that stops being Claude-Code-only.**

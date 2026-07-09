@@ -50,6 +50,26 @@ Original animation from [SVGator's website-animation examples](https://www.svgat
 — all credit to the original creator. → [full example](docs/examples/banana/) ·
 [gallery](https://kumarsashank.github.io/motiscope/gallery.html)
 
+### Ambient geometric loop — fifteen tiles, one beat
+
+<p align="center">
+  <img src="docs/examples/ambient/compare.gif" width="100%" alt="Left: the original ambient geometric loop. Right: the recreation — same tiles, same beat, new palette.">
+</p>
+
+<p align="center"><sub><b>Left:</b> the original. &nbsp;<b>Right:</b> recreated with motiscope.</sub></p>
+
+Fifteen tiles spin, scroll and ripple. motiscope measured a **0.75s master beat** — burst
+peaks at 0.317 / 1.067 / 1.817s, agreeing to ±0.02s across three independent tiles — and an
+easing whose peak angular speed is **3.6× the mean**, far sharper than a stock ease-in-out.
+The result is **14 KB** of animated SVG with no JavaScript. Only the palette changed.
+
+The whole-frame summary said `linear`. Per tile it isn't — the velocity drops to near zero
+and ramps again. *That's the point: the report gives you the timing, you read the frames.*
+
+→ **[Live recreation](https://kumarsashank.github.io/motiscope/examples/ambient/)** ·
+[raw analysis + build script](docs/examples/ambient/) ·
+[original on SVGator](https://www.svgator.com/blog/website-animation-examples-and-effects/)
+
 ## How it works
 
 <p align="center"><img src="docs/pipeline.svg" alt="pipeline: video → frames → energy → spec → code" width="100%"></p>

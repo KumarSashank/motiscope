@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ambient geometric loop — built with motiscope</title>
+<meta name="description" content="A 15-tile ambient loop recreated from a 2.28s screen recording: same shapes, same 0.75s beat, new palette. Measured timing, raw analysis, and the 14 KB SVG output.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A1%3C/text%3E%3C/svg%3E">
+<style>
+  :root{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);
+    --ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399;--btn:#6366f1;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--maxw:900px}
+  @media (prefers-color-scheme: light){:root{--ground:#f6f7fb;--panel:#fff;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);--ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669}}
+  :root[data-theme="light"]{--ground:#f6f7fb;--panel:#fff;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);--ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669}
+  :root[data-theme="dark"]{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);--ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--ind);text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em}
+  .topbar{position:sticky;top:0;z-index:9;background:color-mix(in oklab,var(--ground) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:54px;gap:16px}
+  .brandmark{font-family:var(--mono);font-weight:600;letter-spacing:.5px;font-size:15px;display:flex;align-items:center;gap:9px}
+  .dot{width:9px;height:9px;border-radius:50%;background:conic-gradient(from 0deg,var(--ind),var(--fuc),var(--cya),var(--ind));box-shadow:0 0 10px color-mix(in oklab,var(--fuc) 60%,transparent);animation:spin 6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  nav{display:flex;align-items:center;gap:18px} nav a{color:var(--ink-dim);font-size:14px} nav a:hover{color:var(--ink);text-decoration:none}
+  .toggle{font-family:var(--mono);font-size:12px;color:var(--ink-dim);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;cursor:pointer}
+  header{padding:48px 0 8px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--fuc);margin:0 0 14px}
+  h1{font-size:clamp(28px,5vw,42px);margin:0 0 12px;letter-spacing:-.5px}
+  .lead{color:var(--ink-dim);font-size:18px;max-width:62ch;margin:0}
+  .promise{margin:26px 0 0;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cya);border-radius:10px;padding:16px 18px;font-size:14.5px;color:var(--ink-dim)}
+  .promise b{color:var(--ink)}
+  section{padding:44px 0;border-top:1px solid var(--hair)}
+  h2{font-size:22px;margin:0 0 6px} .sub{color:var(--ink-faint);font-family:var(--mono);font-size:12.5px;margin:0 0 20px}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;line-height:0}
+  .stage img{width:100%;height:auto;display:block}
+  figcaption{line-height:1.6;color:var(--ink-faint);font-family:var(--mono);font-size:12px;margin-top:10px;text-align:center}
+  figure{margin:0}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin-top:4px;display:block;overflow-x:auto}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--hair);vertical-align:top}
+  th{color:var(--ink);font-weight:600;white-space:nowrap}
+  td{color:var(--ink-dim)}
+  .tiles th,.tiles td{white-space:nowrap;font-size:13px}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;
+      font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);line-height:1.7}
+  .callout{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--fuc);border-radius:10px;
+           padding:16px 18px;color:var(--ink-dim);font-size:14.5px;margin-top:18px}
+  .callout b{color:var(--ink)}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:-1px;outline:1px solid rgba(255,255,255,.14)}
+  ul{color:var(--ink-dim);font-size:14.5px;padding-left:20px} li{margin:7px 0}
+  ul b{color:var(--ink)}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0}
+  .t{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid var(--line);color:var(--ink-faint)}
+  .t.t1{color:var(--good);border-color:color-mix(in oklab,var(--good) 40%,var(--line))}
+  .t.t2{color:var(--cya);border-color:color-mix(in oklab,var(--cya) 40%,var(--line))}
+  .t.t3{color:var(--fuc);border-color:color-mix(in oklab,var(--fuc) 40%,var(--line))}
+  .cta{display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px;border:1px solid transparent;background:var(--btn);color:#fff}
+  .cta.ghost{background:var(--panel);color:var(--ink);border-color:var(--line)}
+  .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+  footer{padding:40px 0 64px;border-top:1px solid var(--hair);color:var(--ink-faint);font-family:var(--mono);font-size:12.5px}
+  @media (prefers-reduced-motion:reduce){.dot{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <a class="brandmark" href="../../index.html" style="color:var(--ink)"><span class="dot"></span>motiscope</a>
+  <nav>
+    <a href="../../index.html">Home</a>
+    <a href="../../gallery.html">Gallery</a>
+    <a href="https://github.com/KumarSashank/motiscope">GitHub</a>
+    <button class="toggle" id="tg">&#9680; theme</button>
+  </nav>
+</div></div>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">example · animated svg</p>
+    <h1>Ambient geometric loop</h1>
+    <p class="lead">Fifteen tiles that spin, scroll and ripple on one shared beat. Recreated from a
+      2.28&nbsp;second screen recording: <b>same shapes, same motion, new palette</b>.</p>
+    <div class="tags">
+      <span class="t t1">loop</span><span class="t t1">grid</span>
+      <span class="t t2">eased ticks</span><span class="t t3">animated SVG</span>
+      <span class="t">14&nbsp;KB</span><span class="t">no JS</span>
+    </div>
+    <div class="promise">
+      <b>Everything below is shown, not claimed.</b> The unedited analysis is in
+      <a href="report.md">report.md</a>, the build script is <a href="generate.py">generate.py</a>,
+      and the output rendering at the top of this page is the actual
+      <a href="ambient-loop.svg">ambient-loop.svg</a> — not a video of it.
+    </div>
+  </header>
+
+  <section>
+    <h2>The recreation, live</h2>
+    <p class="sub">rendering in your browser right now · 14 KB of vector · zero JavaScript</p>
+    <figure>
+      <div class="stage">
+        <img src="ambient-loop.svg" alt="A 5x3 grid of Bauhaus-style tiles: discs rotate, triangles scroll, rings ripple outward and squares rock, all snapping on a 0.75-second beat.">
+      </div>
+      <figcaption>ambient-loop.svg &middot; scale it, view-source it, drop it in a page &middot; honours <code>prefers-reduced-motion</code></figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Original vs recreation</h2>
+    <p class="sub">one clip, phase-aligned, so the beats land together</p>
+    <figure>
+      <div class="stage">
+        <img src="compare.gif" alt="Left: the original ambient loop recording. Right: the recreation, playing the same beats with a different palette.">
+      </div>
+      <figcaption><b>Left:</b> the original. &nbsp;<b>Right:</b> recreated with motiscope.</figcaption>
+    </figure>
+    <p style="color:var(--ink-dim);font-size:14.5px">Original animation from
+      <a href="https://www.svgator.com/blog/website-animation-examples-and-effects/">SVGator&rsquo;s website-animation examples</a>
+      — all credit to the original creator. Captured as a screen recording; nothing was traced or copied.</p>
+  </section>
+
+  <section>
+    <h2>What the numbers measured</h2>
+    <p class="sub">a still frame shows every shape and no timing — this is the part you cannot eyeball</p>
+    <table>
+      <tr><th>Grid</th><td>5&nbsp;&times;&nbsp;3 tiles of <b>267&nbsp;px</b>, inset at <b>(18,&nbsp;9)</b> — the artwork is <em>not</em> flush to the frame. Found from the strongest vertical/horizontal edges. The first guess (flush 277&nbsp;px tiles) was wrong, and made neighbouring tiles bleed into each other.</td></tr>
+      <tr><th>Beat</th><td><b>0.75&nbsp;s.</b> Burst peaks at 0.317&nbsp;/&nbsp;1.067&nbsp;/&nbsp;1.817&nbsp;s, agreeing to &plusmn;0.02&nbsp;s across three independent tiles.</td></tr>
+      <tr><th>Character</th><td>Short eased <b>ticks</b>, then a hold — <em>not</em> constant velocity.</td></tr>
+      <tr><th>Easing</th><td>Peak angular speed is <b>~3.6&times; the mean</b> — too sharp for a stock ease-in-out. <code>cubic-bezier(.83,0,.17,1)</code>.</td></tr>
+      <tr><th>Cadence</th><td>Most tiles tick every beat; the half-plane, pie wedge and L-morph tick every <em>second</em> beat.</td></tr>
+      <tr><th>Stagger</th><td>~41&nbsp;ms top-to-bottom, applied as a per-row <code>animation-delay</code>.</td></tr>
+      <tr><th>Loop</th><td>3.0&nbsp;s = 4 beats — the ripple needs four beats to cycle its four colours.</td></tr>
+    </table>
+    <div class="callout">
+      <b>The recording is not a full cycle.</b> Frame&nbsp;0 and the last frame differ by 25.5 against a
+      0.78 neighbour baseline, so the clip is a <em>window</em> onto a longer loop. The 3.0&nbsp;s loop
+      length is inferred from the beat and the four-colour ripple — it is the one timing number here
+      that was reasoned, not measured.
+    </div>
+  </section>
+
+  <section>
+    <h2>The frames motiscope actually used</h2>
+    <p class="sub">all 38 curated keyframes, in order, unedited</p>
+    <figure>
+      <div class="stage">
+        <img src="frames.png" alt="Contact sheet of the 38 curated keyframes motiscope extracted from the recording, in timeline order.">
+      </div>
+      <figcaption>chosen by the motion signal, not sampled evenly &middot; every timestamp and reason is listed in <a href="report.md">report.md</a></figcaption>
+    </figure>
+    <p style="color:var(--ink-dim);font-size:14.5px;margin-top:16px">These are the only thing that costs
+      image tokens (~300&ndash;400 each). The dense motion-energy curve that produced the timing above is
+      pure arithmetic — effectively free. <b style="color:var(--ink)">The numbers tell you <em>when</em>;
+      these frames tell you <em>what</em>.</b></p>
+  </section>
+
+  <section>
+    <h2>The numbers disagreed with the summary — and the numbers won</h2>
+    <p class="sub">why motiscope hands perception to the model instead of guessing</p>
+    <p style="color:var(--ink-dim);font-size:15px;max-width:66ch">motiscope&rsquo;s whole-frame readout says
+      <b style="color:var(--ink)">dominant easing: <code>linear</code></b>. That is the average across fifteen
+      tiles moving out of phase. Per tile, the angular velocity decelerates to near zero and ramps again:
+      a hard ease-in-out. Taking the one-line summary at face value would have produced a lifeless,
+      constant-speed grid. The report gives you the timing; you read the frames and the per-segment curve.</p>
+  </section>
+
+  <section>
+    <h2>Verified, not asserted</h2>
+    <p class="sub">the recreation was rendered back to video and re-measured with the same code</p>
+    <pre>source     r1c2 burst peaks=[0.317, 1.067, 1.817]  intervals=[0.75, 0.75]
+recreation r1c2 burst peaks=[0.433, 1.183, 1.933]  intervals=[0.75, 0.75]</pre>
+    <p style="color:var(--ink-dim);font-size:14.5px">Same beat. The 0.116&nbsp;s offset is phase — the
+      recording starts mid-loop — and the side-by-side above is shifted by exactly that much so the two
+      play in step.</p>
+  </section>
+
+  <section>
+    <h2>The fifteen tiles</h2>
+    <p class="sub">every tile a different motif, all on one clock</p>
+    <table class="tiles">
+      <tr><th></th><th>col 0</th><th>col 1</th><th>col 2</th><th>col 3</th><th>col 4</th></tr>
+      <tr><th>row 0</th><td>rocking square + ripple target</td><td>half-disc rotating in a circle</td><td>L collapses / square blooms</td><td>pac-man, &minus;90&deg; per beat</td><td>triangle conveyor, scrolls up</td></tr>
+      <tr><th>row 1</th><td>rotating half-plane</td><td>rocking square + circle</td><td>dome conveyor, scrolls down</td><td>pie wedge, +180&deg; per 2 beats</td><td>quarter-disc scaling</td></tr>
+      <tr><th>row 2</th><td>circle + rotating half + ring</td><td>four triangles pulsing</td><td>expanding ripple rings</td><td>four corner discs &rarr; 4-point star</td><td>rocking square</td></tr>
+    </table>
+    <p style="color:var(--ink-dim);font-size:14.5px;margin-top:16px">The ripple is four discs growing 0&rarr;1
+      across the loop, phase-offset by one beat each, over a background whose colour steps in lock-step with
+      whichever disc has just wrapped — so the wrap is invisible and the colours appear to march outward forever.</p>
+  </section>
+
+  <section>
+    <h2>Only the palette changed</h2>
+    <p class="sub">the timing transfers; the artwork doesn&rsquo;t have to</p>
+    <table>
+      <tr><th>Source</th><th>Here</th></tr>
+      <tr><td><span class="sw" style="background:#FCFCFC"></span><code>#FCFCFC</code> white</td><td><span class="sw" style="background:#FBF8F1"></span><code>#FBF8F1</code> paper</td></tr>
+      <tr><td><span class="sw" style="background:#295EEF"></span><code>#295EEF</code> blue</td><td><span class="sw" style="background:#17A2A2"></span><code>#17A2A2</code> teal</td></tr>
+      <tr><td><span class="sw" style="background:#2F386F"></span><code>#2F386F</code> navy</td><td><span class="sw" style="background:#37244F"></span><code>#37244F</code> plum</td></tr>
+      <tr><td><span class="sw" style="background:#E6C0E2"></span><code>#E6C0E2</code> lilac</td><td><span class="sw" style="background:#BFDCC6"></span><code>#BFDCC6</code> sage</td></tr>
+      <tr><td><span class="sw" style="background:#FBEDAE"></span><code>#FBEDAE</code> cream</td><td><span class="sw" style="background:#FBE3B8"></span><code>#FBE3B8</code> sand</td></tr>
+      <tr><td><span class="sw" style="background:#FBD346"></span><code>#FBD346</code> yellow</td><td><span class="sw" style="background:#F5B335"></span><code>#F5B335</code> amber</td></tr>
+      <tr><td><span class="sw" style="background:#F946A8"></span><code>#F946A8</code> pink</td><td><span class="sw" style="background:#F2584B"></span><code>#F2584B</code> coral</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>What we guessed</h2>
+    <p class="sub">honest examples teach more than perfect ones</p>
+    <ul>
+      <li><b>Rotation rates are quantised to the beat.</b> Centroid tracking measured 235 / 197 / 143 / 134&nbsp;deg&middot;s&#8315;&sup1; for the four rotating tiles — no tidy ratios, and the centroid gets noisy on near-symmetric shapes. Each was snapped to the nearest beat multiple (360&deg; per 2 beats, &plusmn;90&deg; per beat), within ~10% of measured.</li>
+      <li><b>Loop length is inferred</b>, not observed — the recording never completes a cycle.</li>
+      <li><b>Tile interiors are eyeballed</b> from the curated keyframes. Radii, triangle proportions and corner-wedge sizes are within a few pixels, not exact.</li>
+      <li><b>The half-plane</b> sweeps continuously in the source; here it flips 180&deg; per 2 beats.</li>
+      <li><b>Rocking amplitudes</b> (&plusmn;9&deg;, &plusmn;8&deg;, &plusmn;14&deg;) are estimates from the frames.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Two bugs this build surfaced</h2>
+    <p class="sub">both from one root cause, and one of them only hurt the users who could least afford it</p>
+    <p style="color:var(--ink-dim);font-size:15px;max-width:66ch">An element with a <b style="color:var(--ink)">positive</b>
+      <code>animation-delay</code> renders <em>un-transformed</em> until its animation starts.</p>
+    <ul>
+      <li>The 41&nbsp;ms row stagger pushed rows&nbsp;1&ndash;2 past <code>t=0</code>, so every ripple ring drew at full radius and the topmost disc swallowed its tile. Fixed with <code>animation-fill-mode: both</code>.</li>
+      <li>The <code>prefers-reduced-motion</code> fallback used <code>animation: none</code>, which drops all transforms — the same collapse, permanently, for exactly the people who turn motion off. It now freezes on a real frame of the loop (<code>animation-play-state: paused</code> with a shared <code>--t</code> offset).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Reproduce it</h2>
+    <p class="sub">the whole chain, from clip to SVG</p>
+    <pre>motiscope analyze ambient_loop.mov --preset detailed   # -&gt; report.md + curated frames
+python3 generate.py &gt; ambient-loop.svg                 # the build script, verbatim</pre>
+    <div class="ctas">
+      <a class="cta" href="ambient-loop.svg">Open the SVG &#8599;</a>
+      <a class="cta ghost" href="report.md">Raw analysis &#8599;</a>
+      <a class="cta ghost" href="generate.py">Build script &#8599;</a>
+      <a class="cta ghost" href="https://www.svgator.com/blog/website-animation-examples-and-effects/">Original on SVGator &#8599;</a>
+    </div>
+  </section>
+
+  <footer>motiscope · MIT · <a href="https://github.com/KumarSashank/motiscope">github.com/KumarSashank/motiscope</a> · <a href="../../gallery.html">&larr; gallery</a></footer>
+</div>
+<script>
+  (function(){var r=document.documentElement,b=document.getElementById('tg');
+   function c(){return r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+   b.addEventListener('click',function(){r.dataset.theme=c()==='dark'?'light':'dark'})})();
+</script>
+</body>
+</html>

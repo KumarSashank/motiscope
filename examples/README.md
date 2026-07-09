@@ -37,6 +37,7 @@ Copy [`_template/`](_template/) to start.
 
 | Example | Motion type | Target | Source |
 |---|---|---|---|
+| [ambient geometric loop](../docs/examples/ambient/) | 15-tile grid, eased ticks on a 0.75s beat | animated SVG ([live](https://kumarsashank.github.io/motiscope/examples/ambient/)) | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |
 | [tomato → banana](../docs/examples/banana/) | character wake-up loop | animated SVG | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |
 | [Alterfx landing](../docs/examples/alterfx/) | scroll-zoom, stagger, sparkle wipe | GSAP + ScrollTrigger | [Dribbble shot](https://dribbble.com/shots/26592174-Landing-Page-Animation-for-AI-Video-Production-Platform) |
 

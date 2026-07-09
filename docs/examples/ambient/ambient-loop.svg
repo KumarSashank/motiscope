@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600"
+     role="img" aria-label="Ambient geometric loop: a 5x3 grid of Bauhaus tiles, each rotating, scaling or scrolling on a 0.75s beat.">
+  <title>Ambient loop — recreated with motiscope</title>
+  <style>
+    * { transform-box: view-box; }
+    .spin-cw       { animation: spin 1.5s cubic-bezier(.83,0,.17,1) infinite; }
+    .spin-cw-half  { animation: spinh 3.0s cubic-bezier(.83,0,.17,1) infinite; }
+    .spin-ccw-half { animation: spinhr 3.0s cubic-bezier(.83,0,.17,1) infinite; }
+    .tick-cw       { animation: tick 3.0s cubic-bezier(.83,0,.17,1) infinite; }
+    .conv-up       { animation: convup 1.5s cubic-bezier(.83,0,.17,1) infinite; }
+    .conv-down     { animation: convdn 1.5s cubic-bezier(.83,0,.17,1) infinite; }
+    .ring          { animation: grow 3.0s cubic-bezier(.83,0,.17,1) infinite; }
+    .bg4           { animation: bg4 3.0s step-end infinite; }
+    .bg2           { animation: bg2 3.0s step-end infinite; }
+    .pulse-a       { animation: pulsea 1.5s cubic-bezier(.83,0,.17,1) infinite; }
+    .pulse-b       { animation: pulseb 1.5s cubic-bezier(.83,0,.17,1) infinite; }
+    .shrinkY       { animation: shrinky 3.0s cubic-bezier(.83,0,.17,1) infinite; }
+    .shrinkX       { animation: shrinkx 3.0s cubic-bezier(.83,0,.17,1) infinite; }
+    .bloom         { animation: bloom 3.0s cubic-bezier(.83,0,.17,1) infinite; }
+    .rock          { animation: rock 3.0s cubic-bezier(.45,0,.55,1) infinite; }
+    .rock-b        { animation: rockb 3.0s cubic-bezier(.45,0,.55,1) infinite; }
+    .rock-c        { animation: rockc 3.0s cubic-bezier(.45,0,.55,1) infinite; }
+    /* every animated element: own phase + measured ~41ms row stagger - freeze offset.
+       fill-mode: both is load-bearing -- a positive stagger delay would otherwise show
+       the element un-transformed (a ripple ring at full radius) until its turn came. */
+    [class] { animation-delay: calc(var(--d, 0s) + var(--stag, 0s) - var(--t, 0s));
+               animation-fill-mode: both; }
+
+    @keyframes spin   { to { transform: rotate(-360deg); } }
+    @keyframes spinh  { 0%{transform:rotate(0)} 50%{transform:rotate(-180deg)}
+                         100%{transform:rotate(-360deg)} }
+    @keyframes spinhr { 0%{transform:rotate(0)} 50%{transform:rotate(180deg)}
+                         100%{transform:rotate(360deg)} }
+    @keyframes tick   { 0%{transform:rotate(0)} 25%{transform:rotate(-90deg)}
+                         50%{transform:rotate(-180deg)} 75%{transform:rotate(-270deg)}
+                         100%{transform:rotate(-360deg)} }
+    @keyframes convup { 0%{transform:translateY(0)} 50%{transform:translateY(-100px)}
+                         100%{transform:translateY(-200px)} }
+    @keyframes convdn { 0%{transform:translateY(0)} 50%{transform:translateY(100px)}
+                         100%{transform:translateY(200px)} }
+    @keyframes grow   { 0%{transform:scale(0)} 25%{transform:scale(.25)}
+                         50%{transform:scale(.5)} 75%{transform:scale(.75)}
+                         100%{transform:scale(1)} }
+    @keyframes bg4    { 0%{fill:#37244F} 25%{fill:#17A2A2} 50%{fill:#FBF8F1} 75%{fill:#F5B335} }
+    @keyframes bg2    { 0%{fill:#FBE3B8} 25%{fill:#37244F} 50%{fill:#FBE3B8} 75%{fill:#37244F} }
+    @keyframes pulsea { 0%{transform:scale(1)} 50%{transform:scale(.62)} 100%{transform:scale(1)} }
+    @keyframes pulseb { 0%{transform:scale(.62)} 50%{transform:scale(1)} 100%{transform:scale(.62)} }
+    @keyframes shrinky{ 0%,10%{transform:scaleY(1)} 22%,58%{transform:scaleY(0)}
+                         70%,100%{transform:scaleY(1)} }
+    @keyframes shrinkx{ 0%,10%{transform:scaleX(1)} 22%,58%{transform:scaleX(0)}
+                         70%,100%{transform:scaleX(1)} }
+    @keyframes bloom  { 0%,10%{transform:scale(0)} 22%,58%{transform:scale(1)}
+                         70%,100%{transform:scale(0)} }
+    @keyframes rock   { 0%{transform:rotate(-9deg)} 50%{transform:rotate(9deg)}
+                         100%{transform:rotate(-9deg)} }
+    @keyframes rockb  { 0%{transform:rotate(8deg)} 50%{transform:rotate(-8deg)}
+                         100%{transform:rotate(8deg)} }
+    @keyframes rockc  { 0%{transform:rotate(-14deg)} 50%{transform:rotate(6deg)}
+                         100%{transform:rotate(-14deg)} }
+
+    /* Reduced motion: freeze on a real frame of the loop, don't disable the animations.
+       `animation: none` would drop every transform, blowing each ripple ring up to its
+       full radius -- the tiles would render as flat discs, not concentric rings. */
+    @media (prefers-reduced-motion: reduce) {
+      svg { --t: 0.35s; }
+      [class] { animation-play-state: paused !important; }
+    }
+  </style>
+  <defs>
+    <clipPath id="k00"><rect x="0" y="0" width="200" height="200"/></clipPath>
+    <clipPath id="k01"><rect x="200" y="0" width="200" height="200"/></clipPath>
+    <clipPath id="k02"><rect x="400" y="0" width="200" height="200"/></clipPath>
+    <clipPath id="k03"><rect x="600" y="0" width="200" height="200"/></clipPath>
+    <clipPath id="k04"><rect x="800" y="0" width="200" height="200"/></clipPath>
+    <clipPath id="k10"><rect x="0" y="200" width="200" height="200"/></clipPath>
+    <clipPath id="k11"><rect x="200" y="200" width="200" height="200"/></clipPath>
+    <clipPath id="k12"><rect x="400" y="200" width="200" height="200"/></clipPath>
+    <clipPath id="k13"><rect x="600" y="200" width="200" height="200"/></clipPath>
+    <clipPath id="k14"><rect x="800" y="200" width="200" height="200"/></clipPath>
+    <clipPath id="k20"><rect x="0" y="400" width="200" height="200"/></clipPath>
+    <clipPath id="k21"><rect x="200" y="400" width="200" height="200"/></clipPath>
+    <clipPath id="k22"><rect x="400" y="400" width="200" height="200"/></clipPath>
+    <clipPath id="k23"><rect x="600" y="400" width="200" height="200"/></clipPath>
+    <clipPath id="k24"><rect x="800" y="400" width="200" height="200"/></clipPath>
+    <clipPath id="sq00"><rect x="36" y="36" width="128" height="128"/></clipPath>
+  </defs>
+  <rect width="1000" height="600" fill="#FBF8F1"/>
+  <g clip-path="url(#k00)" style="--stag:0.000s">
+    <rect x="0" y="0" width="100.0" height="100.0" fill="#F2584B"/>
+    <rect x="100.0" y="0" width="100.0" height="100.0" fill="#FBE3B8"/>
+    <rect x="0" y="100.0" width="100.0" height="100.0" fill="#F5B335"/>
+    <rect x="100.0" y="100.0" width="100.0" height="100.0" fill="#F2584B"/>
+    <g class="rock" style="transform-origin:100.0px 100.0px">
+      <rect x="25" y="25" width="150" height="150" fill="#FBF8F1"/>
+      <g clip-path="url(#sq00)">
+        <rect x="36" y="36" width="128" height="128" fill="#FBE3B8" class="bg2"/>
+    <circle cx="100" cy="100" r="95" fill="#37244F" class="ring" style="transform-origin:100.0px 100.0px;--d:-2.25s"/>
+    <circle cx="100" cy="100" r="95" fill="#FBE3B8" class="ring" style="transform-origin:100.0px 100.0px;--d:-1.5s"/>
+    <circle cx="100" cy="100" r="95" fill="#37244F" class="ring" style="transform-origin:100.0px 100.0px;--d:-0.75s"/>
+    <circle cx="100" cy="100" r="95" fill="#FBE3B8" class="ring" style="transform-origin:100.0px 100.0px;--d:0.0s"/>
+      </g>
+    </g>
+  </g>
+  <g clip-path="url(#k01)" style="--stag:0.000s">
+    <rect x="200" y="0" width="200" height="200" fill="#FBF8F1"/>
+    <polygon points="200.0,0.0 288.0,0.0 200.0,88.0" fill="#F5B335"/>
+    <polygon points="200.0,200.0 288.0,200.0 200.0,112.0" fill="#F5B335"/>
+    <polygon points="400.0,200.0 312.0,200.0 400.0,112.0" fill="#F5B335"/>
+    <circle cx="300" cy="100" r="95" fill="#FBE3B8"/>
+    <path d="M300.0,100.0 L395.0,100.0 A95,95 0 0 0 205.0,100.0 Z" fill="#17A2A2" class="spin-cw" style="transform-origin:300.0px 100.0px"/>
+  </g>
+  <g clip-path="url(#k02)" style="--stag:0.000s">
+    <rect x="400" y="0" width="200" height="200" fill="#FBF8F1"/>
+    <rect x="400" y="0" width="200" height="100" fill="#BFDCC6" class="shrinkY" style="transform-origin:400.0px 0.0px"/>
+    <rect x="400" y="0" width="100" height="200" fill="#BFDCC6" class="shrinkX" style="transform-origin:400.0px 0.0px"/>
+    <rect x="500" y="100" width="100" height="100" fill="#BFDCC6" class="bloom" style="transform-origin:600.0px 200.0px"/>
+  </g>
+  <g clip-path="url(#k03)" style="--stag:0.000s">
+    <rect x="600" y="0" width="200" height="200" fill="#17A2A2"/>
+    <path d="M700.0,95.0 L776.2,51.0 A88,88 0 1 0 776.2,139.0 Z" fill="#37244F" class="tick-cw" style="transform-origin:700.0px 95.0px"/>
+    <circle cx="700" cy="95" r="41" fill="#FBF8F1"/>
+    <circle cx="700" cy="95" r="17" fill="#BFDCC6"/>
+  </g>
+  <g clip-path="url(#k04)" style="--stag:0.000s">
+    <rect x="800" y="0" width="200" height="200" fill="#17A2A2"/>
+    <g class="conv-up">
+    <polygon points="800.0,-100.0 1000.0,-100.0 900.0,-200.0" fill="#F5B335"/>
+    <polygon points="800.0,0.0 1000.0,0.0 900.0,-100.0" fill="#F2584B"/>
+    <polygon points="800.0,100.0 1000.0,100.0 900.0,0.0" fill="#F5B335"/>
+    <polygon points="800.0,200.0 1000.0,200.0 900.0,100.0" fill="#F2584B"/>
+    <polygon points="800.0,300.0 1000.0,300.0 900.0,200.0" fill="#F5B335"/>
+    <polygon points="800.0,400.0 1000.0,400.0 900.0,300.0" fill="#F2584B"/>
+    </g>
+  </g>
+  <g clip-path="url(#k10)" style="--stag:0.041s">
+    <rect x="0" y="200" width="200" height="200" fill="#FBF8F1"/>
+    <rect x="-200" y="300" width="600" height="400" fill="#BFDCC6" class="spin-cw-half" style="transform-origin:100.0px 300.0px"/>
+  </g>
+  <g clip-path="url(#k11)" style="--stag:0.041s">
+    <rect x="200" y="200" width="200" height="200" fill="#FBE3B8"/>
+    <rect x="220" y="220" width="160" height="160" fill="#F5B335"/>
+    <g class="rock-b" style="transform-origin:300.0px 300.0px">
+      <rect x="232" y="232" width="136" height="136" fill="#F2584B"/>
+      <circle cx="300" cy="300" r="48" fill="#BFDCC6"/>
+    </g>
+  </g>
+  <g clip-path="url(#k12)" style="--stag:0.041s">
+    <rect x="400" y="200" width="200" height="200" fill="#FBF8F1"/>
+    <g class="conv-down">
+    <path d="M500.0,0.0 L400.0,-0.0 A100,100 0 0 0 600.0,0.0 Z" fill="#37244F"/>
+    <path d="M500.0,100.0 L400.0,100.0 A100,100 0 0 0 600.0,100.0 Z" fill="#17A2A2"/>
+    <path d="M500.0,200.0 L400.0,200.0 A100,100 0 0 0 600.0,200.0 Z" fill="#37244F"/>
+    <path d="M500.0,300.0 L400.0,300.0 A100,100 0 0 0 600.0,300.0 Z" fill="#17A2A2"/>
+    <path d="M500.0,400.0 L400.0,400.0 A100,100 0 0 0 600.0,400.0 Z" fill="#37244F"/>
+    <path d="M500.0,500.0 L400.0,500.0 A100,100 0 0 0 600.0,500.0 Z" fill="#17A2A2"/>
+    </g>
+  </g>
+  <g clip-path="url(#k13)" style="--stag:0.041s">
+    <rect x="600" y="200" width="200" height="200" fill="#FBF8F1"/>
+    <circle cx="600" cy="200" r="105" fill="#F5B335"/>
+    <circle cx="800" cy="200" r="105" fill="#17A2A2"/>
+    <circle cx="600" cy="400" r="105" fill="#37244F"/>
+    <circle cx="800" cy="400" r="105" fill="#F5B335"/>
+    <circle cx="700" cy="300" r="95" fill="#FBF8F1"/>
+    <path d="M700.0,300.0 L772.8,238.9 A95,95 0 0 0 638.9,227.2 Z" fill="#F5B335" class="spin-ccw-half" style="transform-origin:700.0px 300.0px"/>
+  </g>
+  <g clip-path="url(#k14)" style="--stag:0.041s">
+    <rect x="800" y="200" width="200" height="200" fill="#FBF8F1"/>
+    <circle cx="1000" cy="400" r="205" fill="#FBE3B8" class="pulse-a" style="transform-origin:1000.0px 400.0px"/>
+  </g>
+  <g clip-path="url(#k20)" style="--stag:0.082s">
+    <rect x="0" y="400" width="200" height="200" fill="#37244F"/>
+    <polygon points="0.0,600.0 90.0,600.0 0.0,510.0" fill="#17A2A2"/>
+    <circle cx="100" cy="500" r="95" fill="#FBF8F1"/>
+    <path d="M100.0,500.0 L100.0,405.0 A95,95 0 0 0 100.0,595.0 Z" fill="#BFDCC6" class="spin-cw" style="transform-origin:100.0px 500.0px"/>
+    <circle cx="95" cy="505" r="34" fill="none" stroke="#F5B335" stroke-width="24"/>
+  </g>
+  <g clip-path="url(#k21)" style="--stag:0.082s">
+    <rect x="200" y="400" width="200" height="200" fill="#FBF8F1"/>
+    <polygon points="200.0,400.0 400.0,400.0 300.0,500.0" fill="#FBE3B8" class="pulse-b" style="transform-origin:300.0px 400.0px"/>
+    <polygon points="200.0,600.0 400.0,600.0 300.0,500.0" fill="#F2584B" class="pulse-b" style="transform-origin:300.0px 600.0px"/>
+    <polygon points="200.0,400.0 200.0,600.0 300.0,500.0" fill="#17A2A2" class="pulse-a" style="transform-origin:200.0px 500.0px"/>
+    <polygon points="400.0,400.0 400.0,600.0 300.0,500.0" fill="#37244F" class="pulse-a" style="transform-origin:400.0px 500.0px"/>
+  </g>
+  <g clip-path="url(#k22)" style="--stag:0.082s">
+    <rect x="400" y="400" width="200" height="200" fill="#37244F" class="bg4"/>
+    <circle cx="500" cy="500" r="145" fill="#17A2A2" class="ring" style="transform-origin:500.0px 500.0px;--d:-2.25s"/>
+    <circle cx="500" cy="500" r="145" fill="#FBF8F1" class="ring" style="transform-origin:500.0px 500.0px;--d:-1.5s"/>
+    <circle cx="500" cy="500" r="145" fill="#F5B335" class="ring" style="transform-origin:500.0px 500.0px;--d:-0.75s"/>
+    <circle cx="500" cy="500" r="145" fill="#37244F" class="ring" style="transform-origin:500.0px 500.0px;--d:0.0s"/>
+  </g>
+  <g clip-path="url(#k23)" style="--stag:0.082s">
+    <rect x="600" y="400" width="200" height="200" fill="#F2584B"/>
+    <circle cx="600" cy="400" r="118" fill="#F5B335" class="pulse-a" style="transform-origin:600.0px 400.0px"/>
+    <circle cx="800" cy="400" r="118" fill="#FBE3B8" class="pulse-b" style="transform-origin:800.0px 400.0px"/>
+    <circle cx="600" cy="600" r="118" fill="#FBE3B8" class="pulse-b" style="transform-origin:600.0px 600.0px"/>
+    <circle cx="800" cy="600" r="118" fill="#BFDCC6" class="pulse-a" style="transform-origin:800.0px 600.0px"/>
+  </g>
+  <g clip-path="url(#k24)" style="--stag:0.082s">
+    <rect x="800" y="400" width="200" height="200" fill="#FBF8F1"/>
+    <rect x="828" y="428" width="144" height="144" fill="#37244F" class="rock-c" style="transform-origin:900.0px 500.0px"/>
+  </g>
+</svg>
