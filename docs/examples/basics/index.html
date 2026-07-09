@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ground truth — what motiscope recovers, and by how much it's off</title>
+<meta name="description" content="Four animations authored with known constants, recorded, then measured by motiscope. The stagger comes back within 2.5%, the loop period exactly — and the ease-out's duration is 26% short, for a reason worth knowing.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A1%3C/text%3E%3C/svg%3E">
+<meta property="og:site_name" content="motiscope">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ground truth — what motiscope recovers, and by how much it's off">
+<meta property="og:description" content="Four animations authored with known constants, recorded, then measured. Stagger within 2.5%, loop period exact, and one duration 26% short — with the reason.">
+<meta property="og:url" content="https://kumarsashank.github.io/motiscope/examples/basics/">
+<meta property="og:image" content="https://kumarsashank.github.io/motiscope/og/basics.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Four UI animations — a hero entrance, a staggered grid, a breathing loader and a scroll reveal.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ground truth — what motiscope recovers, and by how much it's off">
+<meta name="twitter:description" content="We authored them. We recorded them. motiscope measured them. Here is the error.">
+<meta name="twitter:image" content="https://kumarsashank.github.io/motiscope/og/basics.png">
+<meta name="twitter:image:alt" content="Four UI animations — a hero entrance, a staggered grid, a breathing loader and a scroll reveal.">
+<link rel="canonical" href="https://kumarsashank.github.io/motiscope/examples/basics/">
+<style>
+  :root{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);
+    --ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399;--warn:#fbbf24;--btn:#6366f1;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--maxw:900px}
+  @media (prefers-color-scheme: light){:root{--ground:#f6f7fb;--panel:#fff;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);--ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669;--warn:#b45309}}
+  :root[data-theme="light"]{--ground:#f6f7fb;--panel:#fff;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);--ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669;--warn:#b45309}
+  :root[data-theme="dark"]{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);--ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399;--warn:#fbbf24}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--ind);text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;background:color-mix(in oklab,var(--ind) 10%,transparent);padding:1px 5px;border-radius:4px}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;
+      font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);line-height:1.75}
+  pre code{background:none;padding:0}
+  .topbar{position:sticky;top:0;z-index:9;background:color-mix(in oklab,var(--ground) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:54px;gap:16px}
+  .brandmark{font-family:var(--mono);font-weight:600;letter-spacing:.5px;font-size:15px;display:flex;align-items:center;gap:9px}
+  .dot{width:9px;height:9px;border-radius:50%;background:conic-gradient(from 0deg,var(--ind),var(--fuc),var(--cya),var(--ind));box-shadow:0 0 10px color-mix(in oklab,var(--fuc) 60%,transparent);animation:spin 6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  nav{display:flex;align-items:center;gap:18px} nav a{color:var(--ink-dim);font-size:14px} nav a:hover{color:var(--ink);text-decoration:none}
+  .toggle{font-family:var(--mono);font-size:12px;color:var(--ink-dim);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;cursor:pointer}
+  header{padding:50px 0 8px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--fuc);margin:0 0 14px}
+  h1{font-size:clamp(28px,5vw,44px);margin:0 0 12px;letter-spacing:-.5px;line-height:1.12}
+  .lead{color:var(--ink-dim);font-size:18px;max-width:64ch;margin:0}
+  .promise{margin:26px 0 0;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cya);border-radius:10px;padding:16px 18px;font-size:14.5px;color:var(--ink-dim)}
+  .promise b{color:var(--ink)}
+  section{padding:46px 0;border-top:1px solid var(--hair)}
+  h2{font-size:23px;margin:0 0 6px;letter-spacing:-.2px} h3{font-size:16px;margin:28px 0 8px}
+  .sub{color:var(--ink-faint);font-family:var(--mono);font-size:12.5px;margin:0 0 20px}
+  p{color:var(--ink-dim);font-size:15.5px;max-width:68ch} p b,li b{color:var(--ink)}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;line-height:0}
+  .stage img{width:100%;height:auto;display:block}
+  .demo{width:100%;height:400px;border:0;display:block;background:#16203a}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media (max-width:760px){.two{grid-template-columns:1fr}}
+  figure{margin:18px 0 0} figcaption{line-height:1.6;color:var(--ink-faint);font-size:12.5px;margin-top:10px}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin-top:14px;display:block;overflow-x:auto}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--hair);vertical-align:top}
+  th{color:var(--ink);font-weight:600} td{color:var(--ink-dim)}
+  .ok{color:var(--good);font-weight:600} .no{color:var(--warn);font-weight:600}
+  ul{color:var(--ink-dim);font-size:15.5px;padding-left:20px;max-width:68ch} li{margin:9px 0}
+  .callout{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--fuc);border-radius:10px;
+           padding:16px 18px;color:var(--ink-dim);font-size:14.5px;margin-top:20px;max-width:68ch}
+  .callout b{color:var(--ink)}
+  .pull{font-size:19px;color:var(--ink);border-left:3px solid var(--cya);padding:4px 0 4px 18px;margin:24px 0;max-width:62ch;line-height:1.5}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 0}
+  .t{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid var(--line);color:var(--ink-faint)}
+  .t.t1{color:var(--good);border-color:color-mix(in oklab,var(--good) 40%,var(--line))}
+  .t.t2{color:var(--cya);border-color:color-mix(in oklab,var(--cya) 40%,var(--line))}
+  .t.t3{color:var(--warn);border-color:color-mix(in oklab,var(--warn) 40%,var(--line))}
+  .cta{display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px;border:1px solid transparent;background:var(--btn);color:#fff}
+  .cta.ghost{background:var(--panel);color:var(--ink);border-color:var(--line)}
+  .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+  footer{padding:40px 0 64px;border-top:1px solid var(--hair);color:var(--ink-faint);font-family:var(--mono);font-size:12.5px}
+  @media (prefers-reduced-motion:reduce){.dot{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <a class="brandmark" href="../../index.html" style="color:var(--ink)"><span class="dot"></span>motiscope</a>
+  <nav>
+    <a href="../../index.html">Home</a>
+    <a href="../../gallery.html">Gallery</a>
+    <a href="../../how-it-works.html">How it works</a>
+    <button class="toggle" id="tg">&#9680; theme</button>
+  </nav>
+</div></div>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">ground truth</p>
+    <h1>We authored them. We recorded them.<br>motiscope measured them.</h1>
+    <p class="lead">Four ordinary UI animations, written with <b>constants we chose</b>. Each was
+      rendered to a video — a screen recording in every sense — and fed back through the pipeline.
+      This page publishes the error.</p>
+    <div class="promise">
+      <b>Nothing is borrowed and nothing is hidden.</b> The demos are our own code, so the
+      authored numbers are not estimates: they are in the source. Every measurement below comes
+      from an unedited <code>report.md</code>, linked per section. Where motiscope is wrong, the
+      number is in the table and the reason is in the prose.
+    </div>
+  </header>
+
+  <section>
+    <h2>The scoreboard</h2>
+    <p class="sub">four animations, one honest column</p>
+    <table>
+      <tr><th>Demo</th><th>Authored</th><th>Measured</th><th>Verdict</th></tr>
+      <tr><td><a href="#hero-entrance">Hero entrance</a></td>
+        <td>700ms, <code>cubic-bezier(.16,1,.3,1)</code></td>
+        <td>520ms, <code>ease-out</code></td>
+        <td class="no">class right, duration 26% short</td></tr>
+      <tr><td><a href="#staggered-grid">Staggered grid</a></td>
+        <td>120ms between cards</td>
+        <td><b>117ms</b></td>
+        <td class="ok">within 2.5%</td></tr>
+      <tr><td><a href="#loader-loop">Loader loop</a></td>
+        <td>1200ms period</td>
+        <td><b>1200ms</b>, conf 0.83</td>
+        <td class="ok">exact — given enough cycles</td></tr>
+      <tr><td><a href="#scroll-reveal">Scroll reveal</a></td>
+        <td>420px of scroll, <em>no duration</em></td>
+        <td>1120ms <code>ease-out</code></td>
+        <td class="no">the seconds are the recorder&rsquo;s</td></tr>
+    </table>
+    <p class="pull">A tool that only publishes its wins is a brochure. Two of these four are
+      partly wrong, and both failures are the ones the docs already warned about.</p>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────── hero -->
+  <section id="hero-entrance">
+    <h2>1 · Hero entrance</h2>
+    <p class="sub">fade + rise + scale on load &middot; the classic</p>
+    <div class="two">
+      <figure><div class="stage"><iframe class="demo" src="hero.html" title="Hero entrance demo" loading="lazy"></iframe></div>
+        <figcaption>live &middot; <a href="hero.html">open</a></figcaption></figure>
+      <figure><div class="stage"><img src="hero.gif" alt="A card fades in, rises and scales up."></div>
+        <figcaption>the recording motiscope was given</figcaption></figure>
+    </div>
+    <table>
+      <tr><th></th><th>Authored</th><th>Measured</th></tr>
+      <tr><td>Duration</td><td>700 ms</td><td class="no">520 ms</td></tr>
+      <tr><td>Easing class</td><td>ease-out</td><td class="ok">ease-out</td></tr>
+      <tr><td>Control points</td><td><code>(.16, 1, .3, 1)</code></td><td class="no"><code>(0, 0, .58, 1)</code></td></tr>
+      <tr><td>Structure</td><td>move, then hold</td><td>move, hold, 40ms move, hold</td></tr>
+    </table>
+    <div class="callout">
+      <b>Why 520ms and not 700ms.</b> A strong ease-out puts nearly all of its displacement in the
+      first half. The tail crawls — and sub-pixel motion is invisible in the 32&times;32 analysis
+      thumbnails, so the last ~180ms falls under the hold threshold. The docs say exactly this;
+      here is the number. The <em>class</em> is recovered, the <em>control points</em> are the
+      nearest of seven library curves, never the author&rsquo;s. Also predicted, also true.
+    </div>
+    <div class="tags"><span class="t t1">Tier 1</span><span class="t">easing class exact</span><span class="t t3">duration under-reads on strong ease-out</span></div>
+    <p style="margin-top:16px"><a href="reports/hero.md">raw report.md &#8599;</a></p>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────── stagger -->
+  <section id="staggered-grid">
+    <h2>2 · Staggered grid</h2>
+    <p class="sub">six cards, each 500ms, 120ms apart</p>
+    <div class="two">
+      <figure><div class="stage"><iframe class="demo" src="stagger.html" title="Staggered grid demo" loading="lazy"></iframe></div>
+        <figcaption>live &middot; <a href="stagger.html">open</a></figcaption></figure>
+      <figure><div class="stage"><img src="stagger.gif" alt="Six cards animate in one after another."></div>
+        <figcaption>the recording motiscope was given</figcaption></figure>
+    </div>
+    <table>
+      <tr><th></th><th>Authored</th><th>Measured</th></tr>
+      <tr><td>Stagger interval</td><td>120 ms</td><td class="ok">117 ms &nbsp;<span style="color:var(--good)">(−2.5%)</span></td></tr>
+      <tr><td>Direction</td><td>left→right, then wrap</td><td>top-to-bottom (conf 0.73)</td></tr>
+      <tr><td>Span</td><td>600 ms of offsets</td><td>584 ms</td></tr>
+    </table>
+    <p><b>117 against an authored 120.</b> The stagger interval is the number people most want and
+      least expect to get, and it comes back within a frame at 25fps.</p>
+    <p>The <em>direction</em> is reported as top-to-bottom rather than left-to-right — and it isn&rsquo;t
+      wrong. The grid is 3&times;2, so the later cards really are both further right <em>and</em>
+      further down. The energy centroid travels diagonally; motiscope names the dominant axis.
+      Read the frames to break the tie — that&rsquo;s the division of labour the whole tool is built on.</p>
+    <div class="tags"><span class="t t1">Tier 1</span><span class="t">stagger within 2.5%</span><span class="t t2">direction is the dominant axis</span></div>
+    <p style="margin-top:16px"><a href="reports/stagger.md">raw report.md &#8599;</a></p>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────── loop -->
+  <section id="loader-loop">
+    <h2>3 · Loader loop</h2>
+    <p class="sub">a ring that breathes, 1200ms per cycle</p>
+    <div class="two">
+      <figure><div class="stage"><iframe class="demo" src="loop.html" title="Breathing loader demo" loading="lazy"></iframe></div>
+        <figcaption>live &middot; <a href="loop.html">open</a></figcaption></figure>
+      <figure><div class="stage"><img src="loop.gif" alt="A ring scales and fades in and out, over and over."></div>
+        <figcaption>the recording motiscope was given</figcaption></figure>
+    </div>
+    <table>
+      <tr><th></th><th>Authored</th><th>Measured</th></tr>
+      <tr><td>Period</td><td>1200 ms</td><td class="ok">1200 ms</td></tr>
+      <tr><td>Confidence</td><td>—</td><td>0.83 &nbsp;<span style="color:var(--ink-faint)">(threshold 0.70)</span></td></tr>
+      <tr><td>With only 3 cycles</td><td>1200 ms</td><td class="no">rejected — conf 0.66</td></tr>
+    </table>
+    <div class="callout">
+      <b>Loop detection needs repetitions.</b> On a 3.6s clip (three cycles) the autocorrelation
+      peaks in exactly the right place but only reaches <code>0.66</code>, under the
+      <code>0.70</code> guard — so motiscope says nothing rather than guessing. Give it six cycles
+      and it returns <code>1200 ms</code> at <code>0.83</code>. The guard is doing its job in both
+      cases; <b>a rejected loop is not a missing loop, it is an unproven one.</b>
+    </div>
+    <h3>The loader that hides its own loop</h3>
+    <div class="two" style="align-items:center">
+      <figure><div class="stage"><img src="loop-dots.gif" alt="Three dots bouncing out of phase."></div>
+        <figcaption>three dots, phase-staggered — a real loader</figcaption></figure>
+      <div>
+        <p>Our first loader was three bouncing dots, offset by 140ms each. motiscope reported
+          <b>no loop</b>, correlation <code>0.18</code>.</p>
+        <p>It is right, and the reason is lovely: a good loader is designed so that <em>something is
+          always moving</em>. The dots&rsquo; aggregate motion is nearly constant, and aggregate motion
+          is precisely the signal loop detection reads. The better the loader looks, the flatter its
+          energy curve.</p>
+        <p>The docs already say a constant-velocity spinner is undetectable for the same reason. This
+          is the same fact wearing a different hat.</p>
+      </div>
+    </div>
+    <div class="tags"><span class="t t1">Tier 1</span><span class="t">period exact</span><span class="t t3">needs ≥ ~4 cycles</span><span class="t t3">flat-energy loaders undetectable</span></div>
+    <p style="margin-top:16px"><a href="reports/loop.md">raw report.md &#8599;</a> &middot; <a href="loop-dots.html">the dots demo</a></p>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────── scroll -->
+  <section id="scroll-reveal">
+    <h2>4 · Scroll reveal</h2>
+    <p class="sub">opacity and offset are functions of scroll, not of time</p>
+    <div class="two">
+      <figure><div class="stage"><iframe class="demo" src="scroll.html" title="Scroll reveal demo" loading="lazy"></iframe></div>
+        <figcaption>live — <b>scroll inside the frame</b> &middot; <a href="scroll.html">open</a></figcaption></figure>
+      <figure><div class="stage"><img src="scroll.gif" alt="A card fades and rises as the page is scrolled."></div>
+        <figcaption>a scroll capture — someone moved the wheel</figcaption></figure>
+    </div>
+    <table>
+      <tr><th></th><th>Authored</th><th>Measured</th></tr>
+      <tr><td>Trigger</td><td>scroll position</td><td>—</td></tr>
+      <tr><td>Reveal distance</td><td>420 px of scroll</td><td>not a thing motiscope reports</td></tr>
+      <tr><td>Duration</td><td class="ok">there isn&rsquo;t one</td><td class="no">1120 ms</td></tr>
+      <tr><td>Easing</td><td class="ok">there isn&rsquo;t one</td><td class="no"><code>ease-out</code></td></tr>
+    </table>
+    <p class="pull">Both measured numbers are correct descriptions of the recording, and both are
+      useless as descriptions of the design.</p>
+    <p>There is no duration in the source — the CSS reads
+      <code>opacity: clamp(0, calc(var(--s) / 420), 1)</code>. The 1120&nbsp;ms is how long
+      <em>we</em> took to scroll. The <code>ease-out</code> is an artefact of the reveal finishing at
+      420px while the scroll kept going. Replay those seconds and you reproduce the recording, not
+      the website.</p>
+    <p>This is why the spec has a <code>scroll_driven</code> flag, and why <code>recreate</code>
+      binds motion to scroll position instead of a timer. What <em>is</em> intrinsic to a
+      scroll-driven scene is a <b>ratio</b> — see the
+      <a href="../parallax/">parallax example</a>, where six layer ratios are recovered and one is
+      honestly reported as unrecoverable.</p>
+    <div class="tags"><span class="t t2">Tier 2</span><span class="t t3">you add the trigger</span><span class="t">seconds belong to the recorder</span></div>
+    <p style="margin-top:16px"><a href="reports/scroll.md">raw report.md &#8599;</a></p>
+  </section>
+
+  <section>
+    <h2>A bug this page found</h2>
+    <p class="sub">dogfooding earns its keep</p>
+    <p>The loader demo is dark-themed, like this site. <code>blackdetect</code> fires on any frame
+      that is ≥98% dark pixels, so it flagged the <b>entire clip</b> as black — and motiscope
+      duly reported one long <code>fade-in</code> spanning 0–2360&nbsp;ms, losing every bit of the
+      real motion.</p>
+    <pre><code>before:  fade-in  0..2360ms          # the whole clip, one "transition"
+after:   move     0..1080ms  hold    # the breathing ring, as authored
+         move  1320..2280ms  hold
+         move  2520..3560ms</code></pre>
+    <p>A clip that is dark from beginning to end is not a fade — darkness that never resolves is
+      the design. A black interval covering ≥&nbsp;<code>DARK_CLIP_FRACTION</code> (0.85) of the clip
+      is now ignored, with regression tests both ways: a real 0.4s fade in a 2.4s clip is still
+      detected, and the same 0.5s of black is a fade in a 5s clip but the whole story in a 0.55s one.</p>
+    <p><b>Every dark-mode UI animation was affected.</b> It took authoring an animation we already
+      knew the answer to before anyone noticed.</p>
+  </section>
+
+  <section>
+    <h2>Reproduce it</h2>
+    <p class="sub">the demos are the source of truth — read the constants in the CSS</p>
+    <pre><code>motiscope analyze hero.mp4 --preset balanced     # -&gt; report.md + curated frames</code></pre>
+    <p>Each demo freezes on an exact time via <code>#t=&lt;ms&gt;</code> (or <code>#s=&lt;px&gt;</code> for the
+      scroll one), which is how the recordings were rendered frame by frame. The authored constants
+      sit in a comment directly above the keyframes.</p>
+    <div class="ctas">
+      <a class="cta" href="../../gallery.html">Back to the gallery &#8594;</a>
+      <a class="cta ghost" href="../../how-it-works.html">How it works &#8599;</a>
+      <a class="cta ghost" href="https://github.com/KumarSashank/motiscope/tree/main/docs/examples/basics">Source on GitHub &#8599;</a>
+    </div>
+  </section>
+
+  <footer>motiscope · MIT · <a href="https://github.com/KumarSashank/motiscope">github.com/KumarSashank/motiscope</a> ·
+    <a href="../../gallery.html">&larr; gallery</a><br>
+    These four demos are original work — no third-party artwork, no rights to credit.</footer>
+</div>
+<script>
+  (function(){var r=document.documentElement,b=document.getElementById('tg');
+   function c(){return r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+   b.addEventListener('click',function(){r.dataset.theme=c()==='dark'?'light':'dark'})})();
+</script>
+</body>
+</html>

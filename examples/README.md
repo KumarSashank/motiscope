@@ -37,6 +37,7 @@ Copy [`_template/`](_template/) to start.
 
 | Example | Motion type | Target | Source |
 |---|---|---|---|
+| [ground truth: four UI basics](../docs/examples/basics/) | hero entrance, stagger, loop, scroll reveal | CSS ([live](https://kumarsashank.github.io/motiscope/examples/basics/)) | **our own** — authored constants, published error |
 | [parallax landscape](../docs/examples/parallax/) | scroll-driven parallax, 5 depth layers | SVG + CSS ([live](https://kumarsashank.github.io/motiscope/examples/parallax/)) | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |
 | [ambient geometric loop](../docs/examples/ambient/) | 15-tile grid, eased ticks on a 0.75s beat | animated SVG ([live](https://kumarsashank.github.io/motiscope/examples/ambient/)) | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |
 | [tomato → banana](../docs/examples/banana/) | character wake-up loop | animated SVG | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |

@@ -21,7 +21,8 @@ REQUIRED_TW = ["twitter:card", "twitter:image"]
 
 # Pages that are meant to be shared. Fragment/asset pages are exempt.
 PAGES = ["index.html", "gallery.html", "how-it-works.html",
-         "examples/ambient/index.html", "examples/parallax/index.html"]
+         "examples/ambient/index.html", "examples/parallax/index.html",
+         "examples/basics/index.html"]
 
 
 def meta(html: str) -> dict:
@@ -77,6 +78,7 @@ class TestSocialPreview(unittest.TestCase):
             "how-it-works.html": f"{BASE}/how-it-works.html",
             "examples/ambient/index.html": f"{BASE}/examples/ambient/",
             "examples/parallax/index.html": f"{BASE}/examples/parallax/",
+            "examples/basics/index.html": f"{BASE}/examples/basics/",
         }
         for page, url in expected.items():
             m = meta((DOCS / page).read_text())
@@ -123,6 +125,7 @@ class TestSearchIndexing(unittest.TestCase):
             f"{BASE}/how-it-works.html",
             f"{BASE}/examples/ambient/",
             f"{BASE}/examples/parallax/",
+            f"{BASE}/examples/basics/",
         }
         for loc in expected:
             with self.subTest(url=loc):

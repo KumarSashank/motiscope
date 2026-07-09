@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Loader loop — ground truth</title>
+<style>
+  :root { --t: 0s; --bg:#0d1220; --card:#18203a; --ink:#e7e9f2; --dim:#8b93ad;
+           --ind:#818cf8; --cya:#22d3ee; --fuc:#e879f9; --good:#34d399; }
+  * { box-sizing:border-box; margin:0; }
+  html,body { width:800px; height:450px; overflow:hidden; }
+  body { background:var(--bg); color:var(--ink); display:grid; place-items:center;
+          font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  /* Every animated element resolves its delay against --t, so freezing is exact. */
+  .a { animation-delay: calc(var(--d, 0s) - var(--t)); animation-fill-mode: both; }
+  html.frozen .a { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .a { animation-name: none !important; } }
+
+  .ring { width:132px; height:132px; border-radius:50%;
+           border:12px solid var(--ind); border-top-color: var(--cya);
+           border-right-color: var(--fuc); }
+  /* AUTHORED: scale .70 -> 1.0 and opacity .40 -> 1.0, period 1200ms, infinite.
+     The energy peaks TWICE per cycle (growing, then shrinking), so autocorrelation
+     should report the HALF cycle -- the documented yoyo caveat. */
+  .ring.a { animation-name: breathe; animation-duration: 1200ms;
+             animation-timing-function: cubic-bezier(.45,0,.55,1);
+             animation-iteration-count: infinite; }
+  @keyframes breathe {
+    0%,100% { transform:scale(.70); opacity:.40; }
+    50%     { transform:scale(1);   opacity:1;   }
+  }
+</style></head>
+<body>
+  <div class="ring a"></div>
+<script>
+  var m = location.hash.match(/^#t=(\d+)/);
+  if (m) {
+    document.documentElement.style.setProperty('--t', m[1] + 'ms');
+    document.documentElement.classList.add('frozen');
+  }
+</script>
+</body></html>

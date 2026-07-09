@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Loader loop — ground truth</title>
+<style>
+  :root { --t: 0s; --bg:#0d1220; --card:#18203a; --ink:#e7e9f2; --dim:#8b93ad;
+           --ind:#818cf8; --cya:#22d3ee; --fuc:#e879f9; --good:#34d399; }
+  * { box-sizing:border-box; margin:0; }
+  html,body { width:800px; height:450px; overflow:hidden; }
+  body { background:var(--bg); color:var(--ink); display:grid; place-items:center;
+          font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  /* Every animated element resolves its delay against --t, so freezing is exact. */
+  .a { animation-delay: calc(var(--d, 0s) - var(--t)); animation-fill-mode: both; }
+  html.frozen .a { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .a { animation-name: none !important; } }
+
+  .load { display:flex; gap:26px; align-items:flex-end; height:120px; }
+  i { width:34px; height:34px; border-radius:50%; background:var(--fuc); display:block; }
+  i:nth-child(2) { background:var(--ind); }
+  i:nth-child(3) { background:var(--cya); }
+  /* AUTHORED: bounce, period 1000ms, infinite. Energy peaks TWICE per cycle
+     (up and down), so autocorrelation should report the HALF cycle. */
+  i.a { animation-name: bounce; animation-duration: 1000ms;
+         animation-timing-function: cubic-bezier(.45,0,.55,1);
+         animation-iteration-count: infinite; }
+  @keyframes bounce {
+    0%,100% { transform:translateY(0); }
+    50%     { transform:translateY(-72px); }
+  }
+</style></head>
+<body>
+  <div class="load">
+    <i class="a" style="--d:0ms"></i>
+    <i class="a" style="--d:140ms"></i>
+    <i class="a" style="--d:280ms"></i>
+  </div>
+<script>
+  var m = location.hash.match(/^#t=(\d+)/);
+  if (m) {
+    document.documentElement.style.setProperty('--t', m[1] + 'ms');
+    document.documentElement.classList.add('frozen');
+  }
+</script>
+</body></html>

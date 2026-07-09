@@ -6,6 +6,31 @@ All notable changes to motiscope are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **Ground-truth examples** (`docs/examples/basics/`) — four ordinary UI animations authored
+  with *known constants*, rendered to video, then measured back through the pipeline. The four
+  `example coming` placeholders in the gallery are now real, and each publishes its error rather
+  than only its win. Original work, no third-party artwork.
+  - **Stagger:** authored 120ms between cards, measured **117ms** (−2.5%, under a frame at 25fps).
+  - **Loop:** authored 1200ms, measured **1200ms** at confidence 0.83 — *given six cycles*. With
+    three cycles the autocorrelation peaks in the right place but reaches only 0.66 and is
+    **rejected**. A rejected loop is not a missing loop; it is an unproven one.
+  - **Hero entrance:** the ease-out *class* is exact, but the duration reads 520ms against an
+    authored 700ms. A strong ease-out's tail is sub-pixel, so it falls under the hold threshold —
+    exactly what the docs predict, now with the number attached.
+  - **Scroll reveal:** there is no duration in the source at all; motiscope reports 1120ms
+    `ease-out`. A perfect description of the recording and a useless one of the design.
+  - A loader made of three phase-staggered dots is reported as **no loop** (corr 0.18) — correctly.
+    A good loader keeps aggregate motion constant, and aggregate motion is the signal loop
+    detection reads. The better the loader looks, the flatter its energy curve.
+
+### Fixed
+- **A dark clip is not a fade.** `blackdetect` fires on any frame that is ≥98% dark pixels, so a
+  dark-mode UI animation tripped it for its whole duration and was reported as one long `fade-in`,
+  losing all of its real motion. A black interval covering ≥ `DARK_CLIP_FRACTION` (0.85) of the
+  clip is now ignored — darkness that never resolves is the design, not a transition. Regression
+  tests cover both directions: a real 0.4s fade in a 2.4s clip is still detected, and the same 0.5s
+  of black is a fade in a 5s clip but the whole story in a 0.55s one. Found by authoring an
+  animation whose answer we already knew.
 - **`references/measurement-traps.md`** — eight traps, each hit while building the examples in
   this repo, each of which returned a clean number with a tidy residual. The analyze skill now
   tells the model that curated frames are **evidence, not an inventory** (a train was missed

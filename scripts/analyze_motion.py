@@ -547,6 +547,11 @@ def _reclassify_holds(runs, fps):
 def detect_fades(brightness: dict | None, black_intervals: list[dict], duration: float) -> list[dict]:
     fades = []
     for bi in black_intervals:
+        # A dark-themed UI is dark for its whole duration. `blackdetect` fires on it, but
+        # darkness that never ends is the design, not a transition. Without this guard a
+        # dark-mode animation is reported as one long `fade-in` and its real motion is lost.
+        if bi["duration"] >= DARK_CLIP_FRACTION * duration:
+            continue
         if bi["start_s"] <= 0.12:
             fades.append({"kind": "fade-in", "start_ms": 0, "end_ms": round(bi["end_s"] * 1000)})
         elif bi["end_s"] >= duration - 0.12:
@@ -640,6 +645,7 @@ def find_beats(energy: list[float], fps: float, peak_energy: float) -> dict:
     return {"peaks": peaks, "keyposes": keyposes}
 
 
+DARK_CLIP_FRACTION = 0.85       # a black interval this long IS the clip, not a fade
 LOOP_MIN_CORR = 0.7             # peak autocorrelation to call something a loop
 LOOP_MIN_MOVING_FRACTION = 0.5  # a loop moves continuously, not mostly a hold
 

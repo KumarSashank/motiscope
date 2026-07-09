@@ -212,5 +212,34 @@ class TestMotionAnalysis(unittest.TestCase):
         self.assertEqual(lin["bezier"], [0.0, 0.0, 1.0, 1.0])
 
 
+class TestDarkClipIsNotAFade(unittest.TestCase):
+    """A dark-mode UI animation is dark throughout. That is not a fade."""
+
+    def test_black_interval_spanning_the_clip_is_ignored(self):
+        black = [{"start_s": 0.0, "end_s": 2.36, "duration": 2.36}]
+        fades = analyze_motion.detect_fades(None, black, duration=2.40)
+        self.assertEqual(fades, [], "a clip that is dark throughout was reported as a fade")
+
+    def test_a_real_fade_in_is_still_detected(self):
+        black = [{"start_s": 0.0, "end_s": 0.40, "duration": 0.40}]
+        fades = analyze_motion.detect_fades(None, black, duration=2.40)
+        self.assertEqual(len(fades), 1)
+        self.assertEqual(fades[0]["kind"], "fade-in")
+        self.assertEqual(fades[0]["end_ms"], 400)
+
+    def test_a_real_fade_out_is_still_detected(self):
+        black = [{"start_s": 2.00, "end_s": 2.40, "duration": 0.40}]
+        fades = analyze_motion.detect_fades(None, black, duration=2.40)
+        self.assertEqual(len(fades), 1)
+        self.assertEqual(fades[0]["kind"], "fade-out")
+
+    def test_the_guard_is_a_fraction_of_the_clip_not_an_absolute(self):
+        # 0.5s of black is a fade in a 5s clip, and the whole story in a 0.55s clip
+        long_clip = analyze_motion.detect_fades(None, [{"start_s":0.0,"end_s":0.5,"duration":0.5}], 5.0)
+        short_clip = analyze_motion.detect_fades(None, [{"start_s":0.0,"end_s":0.5,"duration":0.5}], 0.55)
+        self.assertEqual(len(long_clip), 1)
+        self.assertEqual(short_clip, [])
+
+
 if __name__ == "__main__":
     unittest.main()

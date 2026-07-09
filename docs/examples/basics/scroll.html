@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Scroll reveal — ground truth</title>
+<style>
+  :root { --bg:#0d1220; --card:#18203a; --ink:#e7e9f2; --dim:#8b93ad; --cya:#22d3ee; --s:0px; }
+  * { box-sizing:border-box; margin:0; }
+  html,body { width:800px; }
+  body { background:var(--bg); color:var(--ink); overflow-x:hidden;
+         font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .spacer { height:450px; display:grid; place-items:center; color:var(--dim);
+            font:12px ui-monospace,monospace; letter-spacing:.3em; text-transform:uppercase; }
+  .panel { height:450px; display:grid; place-items:center; }
+  /* AUTHORED: opacity and rise are pure functions of scroll, revealed over 420px.
+     There is no duration here at all -- the seconds belong to whoever scrolls. */
+  .card { width:520px; padding:38px 40px; border-radius:18px; background:var(--card);
+          border:1px solid #2b3560;
+          opacity: clamp(0, calc(var(--s) / 420), 1);
+          transform: translateY(calc(60px - min(var(--s), 420px) * 0.143)); }
+  h1 { font-size:34px; letter-spacing:-.02em; }
+  p { color:var(--dim); margin-top:12px; }
+  b { color:var(--cya); font:600 13px ui-monospace,monospace; }
+</style></head>
+<body>
+  <div class="spacer">scroll</div>
+  <div class="panel"><div class="card">
+    <b>SCROLL-DRIVEN</b>
+    <h1>No clock here.</h1>
+    <p>Opacity and offset are functions of scroll position, not of time.</p>
+  </div></div>
+  <div class="spacer">end</div>
+<script>
+  (function () {
+    var root = document.documentElement, t = false;
+    var m = location.hash.match(/^#s=(\d+)/);
+    if (m) { root.style.setProperty('--s', m[1] + 'px');
+             document.body.style.transform = 'translateY(-' + m[1] + 'px)'; return; }
+    addEventListener('scroll', function () {
+      if (t) return; t = true;
+      requestAnimationFrame(function () { root.style.setProperty('--s', scrollY + 'px'); t = false; });
+    }, { passive: true });
+  })();
+</script>
+</body></html>

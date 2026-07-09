@@ -35,6 +35,7 @@ CONSTANTS = [
     (am, "MIN_RUN_SECONDS", "0.10"),
     (am, "HOLD_INTERIOR_MIN", "0.12"),
     (am, "HOLD_BOUNDARY_MIN", "0.35"),
+    (am, "DARK_CLIP_FRACTION", "0.85"),
     (am, "LOOP_MIN_CORR", "0.7"),
     (am, "LOOP_MIN_MOVING_FRACTION", "0.5"),
     (ingest, "DECOMPOSE_MIN_DURATION", "8.0"),

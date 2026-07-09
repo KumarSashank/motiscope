@@ -120,6 +120,12 @@ signalstats,metadata=mode=print" -f null -
 | `freezedetect` | whole-frame stillness | **confirmation only** |
 | `siti` | spatial/temporal information | → `content_profile` |
 
+**A dark clip is not a fade.** `blackdetect` fires on any frame that is ≥98% dark pixels, so a
+dark-mode UI animation trips it for its entire duration. A black interval covering at least
+`DARK_CLIP_FRACTION` = `0.85` of the clip is therefore ignored: darkness that never ends is
+the design, not a transition. Before this guard, a dark-theme loader was reported as one long
+`fade-in` and all of its real motion was lost.
+
 **`freezedetect` is deliberately demoted.** It measures whole-frame stillness, so on a large
 canvas it fires while a small element is mid-animation. It may *confirm* a hold the energy
 curve already found; it may never convert a `move` into a `hold`. Letting it do so was a bug.

@@ -52,7 +52,8 @@
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
   @media (max-width:640px){.grid{grid-template-columns:1fr}}
   .ex{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-  .ex .thumb{aspect-ratio:16/9;background:#0a0c12;display:grid;place-items:center;border-bottom:1px solid var(--hair);color:var(--ink-faint);font-family:var(--mono);font-size:12px}
+  .ex .thumb{aspect-ratio:16/9;background:#0a0c12;display:grid;place-items:center;border-bottom:1px solid var(--hair);color:var(--ink-faint);font-family:var(--mono);font-size:12px;overflow:hidden}
+  a.ex{text-decoration:none} a.ex:hover{border-color:var(--ind)} a.ex:hover h3{color:var(--ind)}
   .ex .body{padding:16px} .ex h3{margin:0 0 6px;font-size:16px} .ex p{margin:0;color:var(--ink-dim);font-size:13.5px}
   .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
   .t{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid var(--line);color:var(--ink-faint)}
@@ -158,12 +159,27 @@
 
   <section>
     <h2>What's recreatable</h2>
-    <p class="sub">motiscope reads motion from pixels over time — strong at 2D UI motion, honest about the edges.</p>
+    <p class="sub">We authored these four with known constants, recorded them, and measured them back. The error is published.</p>
+    <div class="promise" style="margin:0 0 22px">
+      <b>Ground truth, not a brochure.</b> These are our own animations, so the authored numbers aren't estimates — they're in the source. Two of the four are partly wrong, and both failures are the ones the docs already warned about. <a href="examples/basics/">Read the full comparison &#8594;</a>
+    </div>
     <div class="grid">
-      <div class="ex"><div class="thumb">example coming</div><div class="body"><h3>Hero entrance</h3><p>Fade + rise + scale on load. Timing &amp; easing measured end-to-end.</p><div class="tags"><span class="t t1">Tier 1 · nails it</span><span class="t">GSAP</span></div></div></div>
-      <div class="ex"><div class="thumb">example coming</div><div class="body"><h3>Staggered grid</h3><p>Cards/features animating in with an inferred left-to-right stagger.</p><div class="tags"><span class="t t1">Tier 1 · nails it</span><span class="t">CSS</span></div></div></div>
-      <div class="ex"><div class="thumb">example coming</div><div class="body"><h3>Loader / loop</h3><p>Looping spinner — loop detection reports the period → repeat/yoyo.</p><div class="tags"><span class="t t1">Tier 1 · nails it</span><span class="t">SVG</span></div></div></div>
-      <div class="ex"><div class="thumb">example coming</div><div class="body"><h3>Scroll reveal</h3><p>Scroll-triggered section. Motion captured; tag it → GSAP ScrollTrigger.</p><div class="tags"><span class="t t2">Tier 2 · you add the trigger</span><span class="t">GSAP</span></div></div></div>
+      <a class="ex" href="examples/basics/#hero-entrance" style="color:inherit">
+        <div class="thumb" style="padding:0"><img src="examples/basics/hero.gif" alt="a card fades in, rises and scales up" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+        <div class="body"><h3>Hero entrance</h3><p>Authored 700ms <code>cubic-bezier(.16,1,.3,1)</code>. Measured 520ms, <b>ease-out</b>. The class is exact; the duration under-reads because a strong ease-out's tail is sub-pixel.</p>
+        <div class="tags"><span class="t t1">Tier 1</span><span class="t t3">−26% duration</span><span class="t">CSS</span></div></div></a>
+      <a class="ex" href="examples/basics/#staggered-grid" style="color:inherit">
+        <div class="thumb" style="padding:0"><img src="examples/basics/stagger.gif" alt="six cards animating in one after another" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+        <div class="body"><h3>Staggered grid</h3><p>Authored <b>120ms</b> between cards. Measured <b>117ms</b> — within 2.5%, under a frame at 25fps. The direction it names is the dominant axis, not the whole truth.</p>
+        <div class="tags"><span class="t t1">Tier 1 · nails it</span><span class="t">CSS</span></div></div></a>
+      <a class="ex" href="examples/basics/#loader-loop" style="color:inherit">
+        <div class="thumb" style="padding:0"><img src="examples/basics/loop.gif" alt="a ring scaling and fading, over and over" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+        <div class="body"><h3>Loader / loop</h3><p>Authored <b>1200ms</b>. Measured <b>1200ms</b> at conf 0.83 — but only with six cycles. Three cycles score 0.66 and are <em>rejected</em>. A rejected loop is an unproven one.</p>
+        <div class="tags"><span class="t t1">Tier 1 · exact</span><span class="t t3">needs ≥ ~4 cycles</span><span class="t">SVG</span></div></div></a>
+      <a class="ex" href="examples/basics/#scroll-reveal" style="color:inherit">
+        <div class="thumb" style="padding:0"><img src="examples/basics/scroll.gif" alt="a card fading and rising as the page scrolls" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+        <div class="body"><h3>Scroll reveal</h3><p>There is <em>no duration</em> in the source. motiscope reports 1120ms <code>ease-out</code> — a perfect description of the recording, and useless as a description of the design.</p>
+        <div class="tags"><span class="t t2">Tier 2 · you add the trigger</span><span class="t">GSAP</span></div></div></a>
     </div>
   </section>
 
