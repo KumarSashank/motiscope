@@ -154,5 +154,36 @@ class TestSearchIndexing(unittest.TestCase):
         self.assertIn("SoftwareSourceCode", types)
 
 
+class TestPublishedAssets(unittest.TestCase):
+    """A file that exists locally but is gitignored is a 404 on the live site.
+
+    `scroll.mp4` shipped exactly that way: the page referenced it, it rendered fine on
+    localhost, and `.gitignore`'s `*.mp4` meant it was never committed.
+    """
+
+    def _tracked(self):
+        import subprocess
+        out = subprocess.run(["git", "ls-files", "docs"], cwd=ROOT,
+                             capture_output=True, text=True, check=True).stdout
+        return {ROOT / line for line in out.splitlines() if line}
+
+    def test_every_referenced_asset_is_tracked_by_git(self):
+        tracked = self._tracked()
+        missing = []
+        for html in sorted(DOCS.rglob("*.html")):
+            for ref in re.findall(r'(?:href|src|poster)="([^"#]+)"', html.read_text()):
+                if ref.startswith(("http", "data:", "mailto:", "#")):
+                    continue
+                target = (html.parent / ref).resolve()
+                if target.is_dir():          # a directory link is served by its index.html
+                    target = target / "index.html"
+                if not target.exists():
+                    missing.append(f"{html.relative_to(ROOT)} -> {ref} (no such file)")
+                elif target not in tracked:
+                    missing.append(f"{html.relative_to(ROOT)} -> {ref} (exists but NOT tracked)")
+        self.assertEqual(missing, [], "referenced assets that will 404 once deployed:\n  " +
+                                      "\n  ".join(missing))
+
+
 if __name__ == "__main__":
     unittest.main()

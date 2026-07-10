@@ -39,3 +39,8 @@ tests/*.mp4
 
 # Local source recordings (rights vary — never commit)
 examples/source-videos/
+
+# Source recordings stay out (rights vary, and they're big). Published example videos
+# are part of the site, so allow those explicitly.
+!docs/examples/**/*.mp4
+!docs/**/*.mp4
