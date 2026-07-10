@@ -116,8 +116,13 @@ Write to `./motiscope-output/site/`. Then:
   **design-to-code study**, and confirm the user has the right to publish before it goes public.
   Don't publish a clone of a third party's brand without their say-so.
 
-See the Cadence example — an **original** page walked through, recorded, measured and rebuilt —
-at <https://kumarsashank.github.io/motiscope/examples/landing/>.
+Two worked examples:
+- **[Cadence](https://kumarsashank.github.io/motiscope/examples/landing/)** — an *original* page,
+  walked through and measured. Every scroll boundary lands on the authored millisecond, and the two
+  things motiscope gets wrong are published with the reason.
+- **[Alterfx](https://kumarsashank.github.io/motiscope/examples/alterfx/)** — a real Dribbble
+  concept rebuilt from a 10s recording, credited on the page and framed as a **design-to-code
+  study**. This is what the rights step below looks like when the answer is "yes, with attribution".
 
 **Rights come first.** If the recording is of someone else's site or concept, say so before you
 build: offer to recreate it as a *study* with visible attribution, or to rebuild the structure and

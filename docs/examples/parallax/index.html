@@ -153,13 +153,23 @@
 
   <section>
     <h2>The train tracks your scroll</h2>
-    <p class="sub">the recreation at scrollY = 0, 110, 220, 330 &middot; it exits behind a tree, as in the source</p>
+    <p class="sub">a scroll-through of the recreation &middot; the train crosses and exits behind a tree, as in the source</p>
+    <figure>
+      <div class="stage">
+        <video src="scroll.mp4" poster="scroll-poster.jpg" autoplay muted loop playsinline
+               style="width:100%;height:auto;display:block"
+               aria-label="Scrolling the recreated page: the layers separate by depth and the train crosses the viaduct left to right."></video>
+      </div>
+      <figcaption>Every frame rendered at a fixed scroll offset — this is the page itself, scrolled.
+        No animation, no keyframes: the train&rsquo;s position is a pure function of <code>--s</code>,
+        <code>translateX(calc(-60px + var(--s) * 3.58))</code>. Scroll back up and it reverses.
+        <a href="scroll.mp4">the video &#8599;</a></figcaption>
+    </figure>
     <figure>
       <div class="stage">
         <img src="train-scroll.png" alt="Four bands of the recreated bridge at increasing scroll positions; the train moves further right in each one and disappears behind a foreground tree in the last.">
       </div>
-      <figcaption>No animation, no keyframes — the train&rsquo;s position is a pure function of
-        <code>--s</code>: <code>translateX(calc(-60px + var(--s) * 3.58))</code>.</figcaption>
+      <figcaption>The same thing frame by frame, at <code>scrollY</code> = 0, 110, 220, 330.</figcaption>
     </figure>
   </section>
 

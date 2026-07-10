@@ -6,6 +6,11 @@ A scroll-driven parallax hero — sky, far hills, mid hills, deep hills, a viadu
 **train crossing it**, and a near-black foreground of trees, bushes and tulips. Recreated
 from a **2.25s screen recording**. Traced terrain, measured speeds, **new palette**.
 
+![scrolling the recreation: the layers separate by depth and the train crosses the viaduct](scroll.gif)
+
+*Every frame rendered at a fixed scroll offset — this is the page itself, scrolled. Full
+video: [`scroll.mp4`](scroll.mp4).*
+
 - **Original:** a parallax landing page from SVGator's
   [website animation examples](https://www.svgator.com/blog/website-animation-examples-and-effects/)
   — all credit to the original creator.

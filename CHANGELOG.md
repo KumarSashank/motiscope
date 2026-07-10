@@ -20,14 +20,21 @@ All notable changes to motiscope are documented here. The format follows
     stagger. On a walkthrough the dominant motion is the scroll.
 
 ### Changed
-- **Retired the Alterfx example.** It was a faithful, credited recreation of a third party's
-  Dribbble concept — and also a clone of a designer's work published on our own site. Cadence
-  demonstrates the identical capability and owes nobody. `docs/examples/alterfx/` removed.
+- **Two whole-page examples now, doing two different jobs.** [Alterfx](docs/examples/alterfx/)
+  stays: a real Dribbble concept rebuilt from a 10s recording, credited on the page, framed as a
+  design-to-code study, not affiliated with the original designer — it proves the *capability*
+  against a real-world design. **Cadence** measures it: because the page is ours, the authored
+  numbers are in the CSS and the comparison is checkable rather than asserted.
 - **`rebuild-site` now leads with rights.** If the recording is of someone else's site or concept,
   the skill says to raise it *before* building: offer a credited study, or rebuild the structure
-  and motion under the user's own art and copy. Do not publish a clone.
-- `references/measurement-traps.md` grows two entries from this example: *a staggered group's
-  aggregate energy is a bell, not its elements' curve*, and *brightness is not intent*.
+  and motion under the user's own art and copy. Never publish an uncredited clone. The skill now
+  names both examples — Cadence as ground truth, Alterfx as what "yes, with attribution" looks like.
+- **The parallax example gets a video.** `scroll.mp4` (3s, rendered frame by frame at fixed scroll
+  offsets — the page itself, scrolled) plays on the case study, and `scroll.gif` is the gallery
+  thumbnail, so the train can be seen crossing without opening the page. The `#s=<px>` hook now
+  shifts the document as well as setting `--s`, so a frozen frame looks exactly like a real scroll.
+- `references/measurement-traps.md` grows two entries from the Cadence example: *a staggered
+  group's aggregate energy is a bell, not its elements' curve*, and *brightness is not intent*.
 - **Ground-truth examples** (`docs/examples/basics/`) — four ordinary UI animations authored
   with *known constants*, rendered to video, then measured back through the pipeline. The four
   `example coming` placeholders in the gallery are now real, and each publishes its error rather

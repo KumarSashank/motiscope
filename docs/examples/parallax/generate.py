@@ -348,8 +348,14 @@ HTML = f'''<!doctype html>
   (function () {{
     var root = document.documentElement, ticking = false;
     function apply(y) {{ root.style.setProperty('--s', y + 'px'); }}
-    var m = location.hash.match(/^#s=(\\d+)/);      // #s=600 freezes a scroll state (for verification)
-    if (m) {{ apply(+m[1]); return; }}
+    // #s=600 freezes a scroll state: it sets --s AND shifts the document, so the frame
+    // looks exactly like a real scroll. Used for verification and for rendering the video.
+    var m = location.hash.match(/^#s=(\\d+)/);
+    if (m) {{
+      apply(+m[1]);
+      document.body.style.transform = 'translateY(-' + m[1] + 'px)';
+      return;
+    }}
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     addEventListener('scroll', function () {{
       if (ticking) return;
