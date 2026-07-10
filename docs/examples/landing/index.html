@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadence — a whole landing page, walked through and measured</title>
+<meta name="description" content="An original landing page, recorded as a walkthrough and measured back. Every scroll boundary recovered to the frame; the hero entrance under-read; a scroll into a dark footer called a fade-out. Nothing borrowed.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A1%3C/text%3E%3C/svg%3E">
+<meta property="og:site_name" content="motiscope">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cadence — a whole landing page, walked through and measured">
+<meta property="og:description" content="An original page, recorded and measured. Every scroll boundary recovered to the frame. Two honest failures published alongside. No third-party artwork.">
+<meta property="og:url" content="https://kumarsashank.github.io/motiscope/examples/landing/">
+<meta property="og:image" content="https://kumarsashank.github.io/motiscope/og/landing.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Cadence landing page: a dark hero with a gradient headline and an oscilloscope panel.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cadence — a whole landing page, walked through and measured">
+<meta name="twitter:description" content="Original page. Recorded, measured, rebuilt. Section boundaries exact to one frame; the hero entrance under-read, and we say why.">
+<meta name="twitter:image" content="https://kumarsashank.github.io/motiscope/og/landing.png">
+<meta name="twitter:image:alt" content="The Cadence landing page: a dark hero with a gradient headline and an oscilloscope panel.">
+<link rel="canonical" href="https://kumarsashank.github.io/motiscope/examples/landing/">
+<style>
+  :root{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);
+    --ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399;--warn:#fbbf24;--btn:#6366f1;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--maxw:900px}
+  @media (prefers-color-scheme: light){:root{--ground:#f6f7fb;--panel:#fff;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);--ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669;--warn:#b45309}}
+  :root[data-theme="light"]{--ground:#f6f7fb;--panel:#fff;--line:rgba(99,102,241,.16);--hair:rgba(99,102,241,.10);--ink:#14161f;--ink-dim:#4b5163;--ink-faint:#8b90a3;--ind:#6366f1;--fuc:#c026d3;--cya:#0891b2;--good:#059669;--warn:#b45309}
+  :root[data-theme="dark"]{--ground:#0a0c12;--panel:#10131c;--line:rgba(129,140,248,.14);--hair:rgba(129,140,248,.09);--ink:#e7e9f2;--ink-dim:#9aa0b4;--ink-faint:#5c6380;--ind:#818cf8;--fuc:#e879f9;--cya:#22d3ee;--good:#34d399;--warn:#fbbf24}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--ind);text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;background:color-mix(in oklab,var(--ind) 10%,transparent);padding:1px 5px;border-radius:4px}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;
+      font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);line-height:1.75}
+  pre code{background:none;padding:0}
+  .topbar{position:sticky;top:0;z-index:9;background:color-mix(in oklab,var(--ground) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:54px;gap:16px}
+  .brandmark{font-family:var(--mono);font-weight:600;letter-spacing:.5px;font-size:15px;display:flex;align-items:center;gap:9px}
+  .dot{width:9px;height:9px;border-radius:50%;background:conic-gradient(from 0deg,var(--ind),var(--fuc),var(--cya),var(--ind));box-shadow:0 0 10px color-mix(in oklab,var(--fuc) 60%,transparent);animation:spin 6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  nav{display:flex;align-items:center;gap:18px} nav a{color:var(--ink-dim);font-size:14px} nav a:hover{color:var(--ink);text-decoration:none}
+  .toggle{font-family:var(--mono);font-size:12px;color:var(--ink-dim);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;cursor:pointer}
+  header{padding:50px 0 8px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--fuc);margin:0 0 14px}
+  h1{font-size:clamp(28px,5vw,44px);margin:0 0 12px;letter-spacing:-.5px;line-height:1.12}
+  .lead{color:var(--ink-dim);font-size:18px;max-width:64ch;margin:0}
+  .promise{margin:26px 0 0;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--good);border-radius:10px;padding:16px 18px;font-size:14.5px;color:var(--ink-dim)}
+  .promise b{color:var(--ink)}
+  section{padding:46px 0;border-top:1px solid var(--hair)}
+  h2{font-size:23px;margin:0 0 6px;letter-spacing:-.2px} h3{font-size:16px;margin:28px 0 8px}
+  .sub{color:var(--ink-faint);font-family:var(--mono);font-size:12.5px;margin:0 0 20px}
+  p{color:var(--ink-dim);font-size:15.5px;max-width:68ch} p b,li b{color:var(--ink)}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;line-height:0}
+  .stage img{width:100%;height:auto;display:block}
+  .frame{width:100%;height:600px;border:0;display:block;background:#0a0c12}
+  figure{margin:20px 0 0} figcaption{line-height:1.6;color:var(--ink-faint);font-size:12.5px;margin-top:11px;max-width:68ch}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin-top:14px;display:block;overflow-x:auto}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--hair);vertical-align:top}
+  th{color:var(--ink);font-weight:600} td{color:var(--ink-dim)}
+  td.m{font-family:var(--mono);font-size:13px;white-space:nowrap}
+  .ok{color:var(--good);font-weight:600} .no{color:var(--warn);font-weight:600}
+  ul{color:var(--ink-dim);font-size:15.5px;padding-left:20px;max-width:68ch} li{margin:9px 0}
+  .callout{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--fuc);border-radius:10px;
+           padding:16px 18px;color:var(--ink-dim);font-size:14.5px;margin-top:20px;max-width:68ch}
+  .callout b{color:var(--ink)}
+  .pull{font-size:19px;color:var(--ink);border-left:3px solid var(--cya);padding:4px 0 4px 18px;margin:24px 0;max-width:62ch;line-height:1.5}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0}
+  .t{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid var(--line);color:var(--ink-faint)}
+  .t.t1{color:var(--good);border-color:color-mix(in oklab,var(--good) 40%,var(--line))}
+  .t.t2{color:var(--cya);border-color:color-mix(in oklab,var(--cya) 40%,var(--line))}
+  .t.t3{color:var(--warn);border-color:color-mix(in oklab,var(--warn) 40%,var(--line))}
+  .cta{display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px;border:1px solid transparent;background:var(--btn);color:#fff}
+  .cta.ghost{background:var(--panel);color:var(--ink);border-color:var(--line)}
+  .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+  footer{padding:40px 0 64px;border-top:1px solid var(--hair);color:var(--ink-faint);font-family:var(--mono);font-size:12.5px}
+  @media (prefers-reduced-motion:reduce){.dot{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <a class="brandmark" href="../../index.html" style="color:var(--ink)"><span class="dot"></span>motiscope</a>
+  <nav>
+    <a href="../../index.html">Home</a>
+    <a href="../../gallery.html">Gallery</a>
+    <a href="../../how-it-works.html">How it works</a>
+    <button class="toggle" id="tg">&#9680; theme</button>
+  </nav>
+</div></div>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">example · whole-page walkthrough</p>
+    <h1>A landing page, walked through and measured</h1>
+    <p class="lead"><b>Cadence</b> is an original page — our design, our copy, our SVG. We recorded a
+      walkthrough of it, fed the recording back through motiscope, and published everything it got
+      right and the two things it got wrong.</p>
+    <div class="promise">
+      <b>Nothing borrowed.</b> This example replaces an earlier one that recreated a third party&rsquo;s
+      Dribbble concept. The demonstration is identical and the rights question disappears: the page
+      is ours, so the authored numbers aren&rsquo;t estimates — they&rsquo;re in the CSS.
+      <a href="site.html">Open the page</a> · <a href="report.md">raw report.md</a> ·
+      <a href="source.gif">the recording</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>The page</h2>
+    <p class="sub">scroll inside the frame &middot; this is the real thing, not a video</p>
+    <figure>
+      <div class="stage">
+        <iframe class="frame" src="site.html" title="The Cadence landing page — scroll it" loading="lazy"></iframe>
+      </div>
+      <figcaption>A time-driven hero entrance, a scroll-driven scope zoom, a staggered feature
+        reveal, a diagonal wipe and an FAQ. One file, no dependencies, no photographs.
+        <a href="site.html">Open full screen &#8599;</a></figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>The walkthrough</h2>
+    <p class="sub">4.85s at 20fps &middot; the recording motiscope was given</p>
+    <figure>
+      <div class="stage"><img src="source.gif" alt="A screen recording scrolling through the Cadence landing page, pausing on each section."></div>
+      <figcaption>Hero entrance plays, then a pause on each section — the way a person films a
+        walkthrough. The pauses are the point: <b>a hold is a section</b>.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>What it recovered</h2>
+    <p class="sub">every scroll boundary, to within one frame</p>
+    <p>The walkthrough has four pauses. motiscope found four holds, and every boundary between a
+      scroll and a pause lands on the authored millisecond — the clip runs at 20fps, so one frame
+      is 50&nbsp;ms.</p>
+    <table>
+      <tr><th>Authored</th><th>Measured</th><th></th></tr>
+      <tr><td class="m">hero entrance, 0ms</td><td class="m">move 0..400ms</td><td class="no">under-read — see below</td></tr>
+      <tr><td class="m">pause @ 0px, 1250ms</td><td class="m">hold 450..1450ms</td><td class="ok">section 1</td></tr>
+      <tr><td class="m">scroll 0→900px, <b>1500ms</b></td><td class="m">move <b>1500</b>..2100ms</td><td class="ok">exact</td></tr>
+      <tr><td class="m">pause @ 900px, <b>2150ms</b></td><td class="m">hold <b>2150</b>..2400ms</td><td class="ok">exact</td></tr>
+      <tr><td class="m">scroll 900→1600px, <b>2450ms</b></td><td class="m">move <b>2450</b>..3050ms</td><td class="ok">exact</td></tr>
+      <tr><td class="m">pause @ 1600px, <b>3100ms</b></td><td class="m">hold <b>3100</b>..3350ms</td><td class="ok">exact</td></tr>
+      <tr><td class="m">scroll 1600→2100px, <b>3400ms</b></td><td class="m">move <b>3400</b>..3800ms</td><td class="ok">exact</td></tr>
+      <tr><td class="m">pause @ 2100px, <b>3850ms</b></td><td class="m">hold <b>3850</b>..4050ms</td><td class="ok">exact</td></tr>
+      <tr><td class="m">scroll 2100→2480px, <b>4100ms</b></td><td class="m">fade-out <b>4100</b>..4800ms</td><td class="no">right time, wrong label</td></tr>
+    </table>
+    <p class="pull">This is what <code>rebuild-site</code> is built on. The holds are the sections;
+      the moves are the transitions between them; the curated frames show you what each section
+      contains.</p>
+  </section>
+
+  <section>
+    <h2>What it got wrong</h2>
+    <p class="sub">two failures, both instructive</p>
+
+    <h3>1 · A staggered entrance reads as one bell curve</h3>
+    <p>The hero is four elements, each <b>700ms</b> with <code>cubic-bezier(.16,1,.3,1)</code>,
+      <b>90ms</b> apart. Together they run from 0 to about 970&nbsp;ms.</p>
+    <p>motiscope reports <code>move 0..400ms</code>, easing <code>ease-in-out</code>.</p>
+    <div class="callout">
+      Two effects compound. A strong ease-out puts nearly all displacement in its first half, and the
+      tail is sub-pixel — invisible in a 32&times;32 analysis thumbnail, so it falls under the hold
+      threshold. And the aggregate energy of a <em>staggered group</em> ramps up as elements join and
+      down as they finish: a bell. A bell is <code>ease-in-out</code>. <b>Every element is ease-out;
+      their sum is not.</b> Per-element easing is not recoverable from aggregate energy — it comes
+      from the frames, which is exactly the division of labour the tool is built on.
+    </div>
+    <p>The <b>stagger hint</b> tells the same story: it reports <code>342ms, right-to-left</code>.
+      That is the scroll, not the 90&nbsp;ms hero stagger. On a walkthrough the dominant motion is the
+      page moving, and the hint describes the dominant motion honestly.</p>
+
+    <h3>2 · Scrolling into a dark footer is not a fade</h3>
+    <p>The last scroll lands on a dark footer. Brightness genuinely ramps down, and
+      <code>blackdetect</code> fires for the final 0.45&nbsp;s, so the segment is labelled
+      <code>fade-out</code> — with a beautifully fitted
+      <code>cubic-bezier(0.16, 1, 0.3, 1)</code>, which is real and irrelevant.</p>
+    <p>The <em>timing</em> is right: the segment starts at <b>4100ms</b>, the exact authored moment.
+      The <em>label</em> is wrong. A page whose footer is darker than its hero will do this to you,
+      and no amount of signal processing fixes it — a human (or a model reading the frames) has to
+      look and say &ldquo;that&rsquo;s a scroll.&rdquo;</p>
+    <p><a href="https://github.com/KumarSashank/motiscope/blob/main/references/measurement-traps.md">measurement-traps.md</a>
+      now carries both lessons.</p>
+  </section>
+
+  <section>
+    <h2>The frames motiscope actually used</h2>
+    <p class="sub">22 curated keyframes at 1280px &middot; the <code>landing</code> preset</p>
+    <figure>
+      <div class="stage"><img src="frames.png" alt="Contact sheet of the 22 curated keyframes: hero, scope, features, wipe and FAQ."></div>
+      <figcaption>Chosen by the motion signal. Each section is covered at readable resolution —
+        that is what the <code>landing</code> preset is for. Timestamps and reasons in
+        <a href="report.md">report.md</a>.</figcaption>
+    </figure>
+    <p>Given these frames and that segment table, a model can reconstruct the sections, the copy, the
+      design system and the motion per section — and wire it to <b>measured</b> timing rather than
+      guessed values. That is the whole of <code>rebuild-site</code>.</p>
+  </section>
+
+  <section>
+    <h2>Why this example replaced the last one</h2>
+    <p class="sub">the honest reason</p>
+    <p>The previous whole-page example was a faithful recreation of someone else&rsquo;s Dribbble
+      concept, credited and framed as a study. It demonstrated the capability, and it also published
+      a clone of a designer&rsquo;s work on our own site.</p>
+    <p><b>Cadence demonstrates exactly the same thing and owes nobody.</b> The page is original, the
+      constants are in its CSS, and the comparison above is checkable rather than asserted. The
+      <code>rebuild-site</code> skill now leads with a rights step: if the recording is of someone
+      else&rsquo;s site, offer a credited study — or rebuild the structure and motion under the
+      user&rsquo;s own art and copy.</p>
+    <div class="tags">
+      <span class="t t1">section boundaries exact</span>
+      <span class="t t3">staggered entrance under-reads</span>
+      <span class="t t3">dark footer reads as a fade</span>
+      <span class="t t2">original work</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reproduce it</h2>
+    <p class="sub">the page is the source of truth — the constants are in its CSS</p>
+    <pre><code>motiscope analyze landing.mp4 --preset landing   # -&gt; report.md + 22 curated frames</code></pre>
+    <p>The page freezes on an exact time <em>and</em> scroll via <code>#f=&lt;ms&gt;:&lt;px&gt;</code>, which is
+      how the recording was rendered frame by frame — a hero entrance at scroll 0, then a pause on
+      each section.</p>
+    <div class="ctas">
+      <a class="cta" href="site.html">Open the live page &#8599;</a>
+      <a class="cta ghost" href="report.md">Raw analysis &#8599;</a>
+      <a class="cta ghost" href="../basics/">Ground-truth basics &#8594;</a>
+      <a class="cta ghost" href="../../gallery.html">Back to the gallery &#8594;</a>
+    </div>
+  </section>
+
+  <footer>motiscope · MIT · <a href="https://github.com/KumarSashank/motiscope">github.com/KumarSashank/motiscope</a> ·
+    <a href="../../gallery.html">&larr; gallery</a><br>
+    Cadence is a fictional product and an original demo page. No third-party artwork, nothing to credit.</footer>
+</div>
+<script>
+  (function(){var r=document.documentElement,b=document.getElementById('tg');
+   function c(){return r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+   b.addEventListener('click',function(){r.dataset.theme=c()==='dark'?'light':'dark'})})();
+</script>
+</body>
+</html>

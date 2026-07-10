@@ -81,7 +81,37 @@ it. The terrain is the **upper quantile** of the raw trace over a wide window.
 **Do this:** ask which way the contamination pushes, then pick a statistic that is robust in
 *that direction*. Reason about the artifact's physics before reaching for a filter.
 
-## 6. Scroll-driven is not time-driven
+## 6. A staggered group's aggregate energy is a bell, not its elements' curve
+
+Four elements, each `ease-out`, fired 90ms apart, produce an energy curve that ramps up as
+elements join and down as they finish. That is a bell. A bell fits `ease-in-out`.
+
+**Every element is ease-out; their sum is not.** motiscope reported `ease-in-out` for a hero
+entrance whose every member was `cubic-bezier(.16,1,.3,1)`, and it was describing the aggregate
+faithfully.
+
+**Do this:** per-element easing is *not* recoverable from aggregate energy. Take the segment's
+timing from the numbers and the per-element curve from the frames — or from a focused
+`--start/--end` window over a single element.
+
+The same clip's **stagger hint** read `342ms, right-to-left`. That was the page scrolling, not
+the 90ms hero stagger. On a walkthrough the dominant motion is the scroll, and the hint reports
+the dominant motion.
+
+## 7. Brightness is not intent
+
+A page whose footer is darker than its hero will make a *scroll into the footer* look exactly
+like a `fade-out`: brightness ramps down, `blackdetect` fires, and the segment gets a beautifully
+fitted easing curve that is real and irrelevant.
+
+The **timing** was exact — the segment began on the authored millisecond. Only the **label** was
+wrong. No amount of signal processing fixes this; something has to look at the frames and say
+"that is a scroll."
+
+**Do this:** treat `fade-in` / `fade-out` as a hypothesis about *brightness*, not about *intent*.
+Check it against a frame before you build a fade.
+
+## 8. Scroll-driven is not time-driven
 
 A parallax, a scroll-zoom, a pinned section: these are functions of **scroll position**. The
 seconds in the recording belong to whoever moved the wheel.
@@ -95,7 +125,7 @@ seconds in the recording belong to whoever moved the wheel.
 say plainly which quantities are the recorder's. If you need to bind a time-driven object to
 scroll, derive the constant from the recorded ratio and label the binding a design decision.
 
-## 7. Verify in the substrate, not in your own render
+## 9. Verify in the substrate, not in your own render
 
 Re-measuring pixels of your own output is a second chance to be wrong the same way. A
 pixel-diff of the finished parallax page reported a mismatch — it was measuring occlusion and
@@ -113,7 +143,7 @@ set_f=0.86  top=-258.0  implied_f=0.860
 A layer's on-screen speed relative to the page **is** its parallax factor. That is a proof,
 not a screenshot.
 
-## 8. Beware caches when a test contradicts the file in front of you
+## 10. Beware caches when a test contradicts the file in front of you
 
 Python validates a `.pyc` by source **mtime and size**. Change a constant to another of the
 same byte length, restore it within the same second, and the stale bytecode is still

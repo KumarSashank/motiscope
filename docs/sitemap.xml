@@ -21,11 +21,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://kumarsashank.github.io/motiscope/examples/alterfx/</loc>
-    <lastmod>2026-07-09</lastmod>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://kumarsashank.github.io/motiscope/examples/parallax/</loc>
     <lastmod>2026-07-09</lastmod>
     <priority>0.7</priority>
@@ -39,5 +34,15 @@
     <loc>https://kumarsashank.github.io/motiscope/examples/basics/</loc>
     <lastmod>2026-07-09</lastmod>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kumarsashank.github.io/motiscope/examples/landing/</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kumarsashank.github.io/motiscope/examples/landing/site.html</loc>
+    <lastmod>2026-07-09</lastmod>
+    <priority>0.6</priority>
   </url>
 </urlset>

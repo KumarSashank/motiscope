@@ -41,7 +41,7 @@ Copy [`_template/`](_template/) to start.
 | [parallax landscape](../docs/examples/parallax/) | scroll-driven parallax, 5 depth layers | SVG + CSS ([live](https://kumarsashank.github.io/motiscope/examples/parallax/)) | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |
 | [ambient geometric loop](../docs/examples/ambient/) | 15-tile grid, eased ticks on a 0.75s beat | animated SVG ([live](https://kumarsashank.github.io/motiscope/examples/ambient/)) | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |
 | [tomato → banana](../docs/examples/banana/) | character wake-up loop | animated SVG | [SVGator examples](https://www.svgator.com/blog/website-animation-examples-and-effects/) |
-| [Alterfx landing](../docs/examples/alterfx/) | scroll-zoom, stagger, sparkle wipe | GSAP + ScrollTrigger | [Dribbble shot](https://dribbble.com/shots/26592174-Landing-Page-Animation-for-AI-Video-Production-Platform) |
+| [Cadence landing](../docs/examples/landing/) | whole-page walkthrough: hero entrance, scroll-zoom, stagger, wipe | CSS ([live](https://kumarsashank.github.io/motiscope/examples/landing/site.html)) | **our own** — original page, authored constants |
 
 ## Contribute one
 

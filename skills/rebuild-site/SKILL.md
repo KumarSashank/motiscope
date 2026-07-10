@@ -116,5 +116,9 @@ Write to `./motiscope-output/site/`. Then:
   **design-to-code study**, and confirm the user has the right to publish before it goes public.
   Don't publish a clone of a third party's brand without their say-so.
 
-This is the Alterfx example, generalized — see it live at
-<https://kumarsashank.github.io/motiscope/examples/alterfx/>.
+See the Cadence example — an **original** page walked through, recorded, measured and rebuilt —
+at <https://kumarsashank.github.io/motiscope/examples/landing/>.
+
+**Rights come first.** If the recording is of someone else's site or concept, say so before you
+build: offer to recreate it as a *study* with visible attribution, or to rebuild the structure and
+motion under the user's own art and copy. Do not publish a clone of someone else's design.

@@ -6,6 +6,28 @@ All notable changes to motiscope are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **Example: Cadence — a whole landing page, walked through** (`docs/examples/landing/`).
+  An **original** page — our design, our copy, our SVG, no photographs — recorded as a
+  walkthrough and measured back with `--preset landing`.
+  - **Every scroll boundary lands on the authored millisecond**: 1500 / 2150 / 2450 / 3100 /
+    3400 / 3850 / 4100 ms. Four pauses in, four holds out. This is what `rebuild-site` stands on.
+  - **Two published failures.** A staggered entrance (four elements, each `ease-out`, 90ms apart)
+    reads as one `ease-in-out` bell, because aggregate energy ramps up as elements join and down
+    as they finish — every element is ease-out, their sum is not. And the final scroll into a dark
+    footer is labelled `fade-out`: brightness genuinely ramps, so the timing is exact and the label
+    is wrong.
+  - The `stagger hint` reports `342ms, right-to-left` — the page scrolling, not the 90ms hero
+    stagger. On a walkthrough the dominant motion is the scroll.
+
+### Changed
+- **Retired the Alterfx example.** It was a faithful, credited recreation of a third party's
+  Dribbble concept — and also a clone of a designer's work published on our own site. Cadence
+  demonstrates the identical capability and owes nobody. `docs/examples/alterfx/` removed.
+- **`rebuild-site` now leads with rights.** If the recording is of someone else's site or concept,
+  the skill says to raise it *before* building: offer a credited study, or rebuild the structure
+  and motion under the user's own art and copy. Do not publish a clone.
+- `references/measurement-traps.md` grows two entries from this example: *a staggered group's
+  aggregate energy is a bell, not its elements' curve*, and *brightness is not intent*.
 - **Ground-truth examples** (`docs/examples/basics/`) — four ordinary UI animations authored
   with *known constants*, rendered to video, then measured back through the pipeline. The four
   `example coming` placeholders in the gallery are now real, and each publishes its error rather

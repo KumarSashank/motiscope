@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadence — a motion system for product teams</title>
+<meta name="description" content="An original demo landing page: time-driven hero entrance, scroll-driven scope, staggered feature reveal, a diagonal wipe and an FAQ. Built to be recorded and measured.">
+<style>
+  /* ────────────────────────────────────────────────────────────────
+     Cadence — an ORIGINAL demo landing page. No third-party artwork,
+     no photographs; every mark here is drawn in SVG.
+
+     AUTHORED CONSTANTS (these are the ground truth for the case study):
+       hero entrance   700ms per element, 90ms stagger, cubic-bezier(.16,1,.3,1)
+       feature reveal  scroll-driven, 260px of scroll per card, 140px apart
+       scope zoom      scroll-driven, scale .82 -> 1.06 over 900px
+       wipe            scroll-driven, a diagonal band crossing on scroll
+
+     #f=<ms>:<px> freezes time AND scroll, so the page can be rendered
+     frame by frame into a recording.
+     ──────────────────────────────────────────────────────────────── */
+  :root{
+    --t:0s; --s:0px;
+    --bg:#0a0c12; --panel:#10131c; --panel2:#141a2b;
+    --line:rgba(129,140,248,.16); --hair:rgba(129,140,248,.09);
+    --ink:#e7e9f2; --dim:#9aa0b4; --faint:#5c6380;
+    --ind:#818cf8; --fuc:#e879f9; --cya:#22d3ee; --good:#34d399;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;
+       overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 32px}
+  a{color:inherit;text-decoration:none}
+
+  /* time-driven entrance: delay resolves against --t so freezing is exact */
+  .e{animation-delay:calc(var(--d,0s) - var(--t));animation-fill-mode:both;
+     animation-duration:700ms;animation-timing-function:cubic-bezier(.16,1,.3,1);
+     animation-name:rise}
+  html.frozen .e{animation-play-state:paused}
+  @keyframes rise{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:none}}
+
+  nav{position:sticky;top:0;z-index:20;height:66px;display:flex;align-items:center;
+      backdrop-filter:blur(10px);background:color-mix(in oklab,var(--bg) 86%,transparent);
+      border-bottom:1px solid var(--hair)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:600;letter-spacing:.4px}
+  .mark{width:22px;height:22px}
+  .navlinks{display:flex;gap:26px;color:var(--dim);font-size:14px}
+  .btn{background:var(--ind);color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:9px}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+
+  header{padding:104px 0 60px;text-align:center}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--fuc)}
+  h1{font-size:clamp(40px,6vw,74px);line-height:1.02;letter-spacing:-.035em;margin:20px 0 0;font-weight:800}
+  h1 em{font-style:normal;background:linear-gradient(92deg,var(--cya),var(--ind) 55%,var(--fuc));
+        -webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--dim);font-size:19px;max-width:52ch;margin:22px auto 0}
+  .ctas{display:flex;gap:12px;justify-content:center;margin-top:32px}
+
+  /* scroll-driven scope */
+  .scopewrap{padding:20px 0 110px}
+  .scope{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;
+         box-shadow:0 50px 120px -60px #000;
+         transform:scale(calc(.82 + min(var(--s),900px) * .000267));
+         transform-origin:center top}
+  .scope svg{display:block;width:100%;height:auto}
+  .scopecap{text-align:center;color:var(--faint);font-family:var(--mono);font-size:12px;margin-top:16px}
+
+  section{padding:96px 0;border-top:1px solid var(--hair)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2.6px;text-transform:uppercase;color:var(--cya);margin-bottom:14px}
+  h2{font-size:clamp(28px,3.6vw,40px);letter-spacing:-.02em;margin-bottom:12px}
+  .lead{color:var(--dim);font-size:17px;max-width:60ch}
+
+  /* scroll-driven staggered reveal: one card per 260px, 140px apart */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+  @media(max-width:820px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;
+        opacity:clamp(0, calc((var(--s) - var(--r)) / 260), 1);
+        transform:translateY(calc(30px - 30px * clamp(0, calc((var(--s) - var(--r)) / 260), 1)))}
+  .card .ic{width:38px;height:38px;margin-bottom:16px}
+  .card h3{font-size:17px;margin-bottom:8px}
+  .card p{color:var(--dim);font-size:14.5px}
+  .card b{color:var(--good);font:600 12px var(--mono)}
+
+  /* scroll-driven diagonal wipe */
+  .wipe{position:relative;height:190px;overflow:hidden;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+  .wipe i{position:absolute;inset:-40% -60%;
+          background:linear-gradient(100deg,transparent 42%,color-mix(in oklab,var(--ind) 26%,transparent) 50%,transparent 58%);
+          transform:translateX(calc(-40% + min(var(--s), 2600px) * .05%))}
+  .wipe span{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);
+             font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--faint)}
+
+  .faq{display:grid;gap:12px;margin-top:36px;max-width:760px}
+  .q{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:20px 22px}
+  .q h4{font-size:15.5px;display:flex;justify-content:space-between;gap:16px}
+  .q h4 s{color:var(--ind);text-decoration:none;font-family:var(--mono)}
+  .q p{color:var(--dim);font-size:14.5px;margin-top:10px}
+
+  footer{padding:56px 0 72px;border-top:1px solid var(--hair);color:var(--faint);
+         font-family:var(--mono);font-size:12.5px;text-align:center}
+
+  @media (prefers-reduced-motion: reduce){
+    .e{animation-name:none}
+    .scope{transform:none}
+    .card{opacity:1;transform:none}
+    .wipe i{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10.5" stroke="url(#g1)" stroke-width="1.6"/>
+      <path d="M3 12h3.2l2-5.4 2.6 10.8 2.4-8 1.8 4.4H21" stroke="url(#g1)" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+      <defs><linearGradient id="g1" x1="2" y1="4" x2="22" y2="20">
+        <stop stop-color="#22d3ee"/><stop offset=".55" stop-color="#818cf8"/><stop offset="1" stop-color="#e879f9"/>
+      </linearGradient></defs>
+    </svg>Cadence
+  </a>
+  <div class="navlinks"><a href="#">Product</a><a href="#">Docs</a><a href="#">Pricing</a><a href="#">Blog</a></div>
+  <a class="btn" href="#">Start free</a>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="kicker e" style="--d:0ms">Motion, measured</div>
+  <h1 class="e" style="--d:90ms">Ship motion that<br><em>feels the same</em> everywhere.</h1>
+  <p class="e" style="--d:180ms">Cadence turns your product&rsquo;s timing into a system — one clock, one
+    set of curves, every surface in step.</p>
+  <div class="ctas e" style="--d:270ms">
+    <a class="btn" href="#">Start free</a>
+    <a class="btn ghost" href="#">See the scope</a>
+  </div>
+</div></header>
+
+<div class="scopewrap"><div class="wrap">
+  <div class="scope">
+    <svg viewBox="0 0 1000 420" role="img" aria-label="An oscilloscope panel showing a motion-energy trace with a hold threshold.">
+      <rect width="1000" height="420" fill="#0d1220"/>
+      <g stroke="rgba(129,140,248,.16)" stroke-width="1">
+        <path d="M60 60h880M60 150h880M60 240h880M60 330h880"/>
+        <path d="M60 40v320M280 40v320M500 40v320M720 40v320M940 40v320"/>
+      </g>
+      <path d="M60 330 L110 250 L140 305 L175 190 L205 300 L240 120 L275 292 L310 240 L350 316
+               L395 170 L440 296 L480 235 L520 320 L565 150 L610 290 L650 250 L695 318 L740 200
+               L785 296 L830 260 L880 322 L940 300"
+            fill="none" stroke="url(#g2)" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M60 316h880" stroke="#e879f9" stroke-width="1.4" stroke-dasharray="6 5" opacity=".8"/>
+      <circle cx="240" cy="120" r="4.5" fill="#22d3ee"/>
+      <text x="256" y="112" fill="#a2a8bd" font-family="ui-monospace,Menlo,monospace" font-size="13">peak 24.8 @ 0.42s</text>
+      <text x="64" y="308" fill="#e879f9" font-family="ui-monospace,Menlo,monospace" font-size="12">hold threshold</text>
+      <text x="60" y="386" fill="#5c6380" font-family="ui-monospace,Menlo,monospace" font-size="12">0.00s</text>
+      <text x="880" y="386" fill="#5c6380" font-family="ui-monospace,Menlo,monospace" font-size="12">2.40s</text>
+      <text x="430" y="386" fill="#5c6380" font-family="ui-monospace,Menlo,monospace" font-size="12">motion-energy · 60fps</text>
+      <defs><linearGradient id="g2" x1="60" y1="0" x2="940" y2="0">
+        <stop stop-color="#22d3ee"/><stop offset=".5" stop-color="#818cf8"/><stop offset="1" stop-color="#e879f9"/>
+      </linearGradient></defs>
+    </svg>
+  </div>
+  <p class="scopecap">the scope scales with your scroll — 0.82&times; to 1.06&times; over 900px</p>
+</div></div>
+
+<section><div class="wrap">
+  <div class="eyebrow">What you get</div>
+  <h2>One clock. Every surface.</h2>
+  <p class="lead">Three primitives, and the discipline to use only those three.</p>
+  <div class="cards">
+    <div class="card" style="--r:1180px">
+      <svg class="ic" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="2.5" y="2.5" width="27" height="27" rx="7" stroke="#22d3ee" stroke-width="1.6"/>
+        <path d="M8 20c4 0 4-8 8-8s4 8 8 8" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <b>01</b><h3>Curves</h3>
+      <p>Seven canonical eases, fitted from real motion instead of guessed. Export as
+        <code>cubic-bezier</code>, a Framer array, or a GSAP <code>CustomEase</code>.</p>
+    </div>
+    <div class="card" style="--r:1320px">
+      <svg class="ic" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="2.5" y="2.5" width="27" height="27" rx="7" stroke="#818cf8" stroke-width="1.6"/>
+        <path d="M9 22V12M16 22V9M23 22v-6" stroke="#818cf8" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <b>02</b><h3>Beats</h3>
+      <p>A single measured tempo underneath every transition, so a menu and a modal never
+        disagree about how long a moment lasts.</p>
+    </div>
+    <div class="card" style="--r:1460px">
+      <svg class="ic" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="2.5" y="2.5" width="27" height="27" rx="7" stroke="#e879f9" stroke-width="1.6"/>
+        <circle cx="16" cy="16" r="7" stroke="#e879f9" stroke-width="1.8"/>
+        <circle cx="16" cy="16" r="2.4" fill="#e879f9"/></svg>
+      <b>03</b><h3>Stagger</h3>
+      <p>Sequence derived from the content, not typed by hand. Change the grid and the rhythm
+        follows without a rewrite.</p>
+    </div>
+  </div>
+</div></section>
+
+<div class="wipe"><i></i><span>measured · not guessed</span></div>
+
+<section><div class="wrap">
+  <div class="eyebrow">Questions</div>
+  <h2>The parts people ask about.</h2>
+  <div class="faq">
+    <div class="q"><h4>Does this replace my animation library?<s>+</s></h4>
+      <p>No. Cadence produces the numbers; your library plays them. It emits a curve and a
+        duration, and GSAP, CSS or Framer does the rest.</p></div>
+    <div class="q"><h4>What about scroll-driven motion?<s>+</s></h4>
+      <p>Scroll has no clock. Cadence reports ratios — how far one layer travels per pixel of
+        scroll — and refuses to pretend those are seconds.</p></div>
+    <div class="q"><h4>Where does it get the timing?<s>+</s></h4>
+      <p>From the pixels. A dense motion-energy curve gives duration, beat boundaries and the
+        easing shape; the rest is read off a handful of frames.</p></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  Cadence is a fictional product and an original demo page, built to be recorded and measured.<br>
+  No third-party artwork. Made for <a href="https://github.com/KumarSashank/motiscope" style="color:#818cf8">motiscope</a>.
+</div></footer>
+
+<script>
+  // #f=<ms>:<px> freezes time and scroll so the page can be rendered frame by frame.
+  (function () {
+    var root = document.documentElement, ticking = false;
+    var m = location.hash.match(/^#f=(\d+):(\d+)/);
+    if (m) {
+      root.style.setProperty('--t', m[1] + 'ms');
+      root.classList.add('frozen');
+      root.style.setProperty('--s', m[2] + 'px');
+      document.body.style.transform = 'translateY(-' + m[2] + 'px)';
+      return;
+    }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    addEventListener('scroll', function () {
+      if (ticking) return; ticking = true;
+      requestAnimationFrame(function () { root.style.setProperty('--s', scrollY + 'px'); ticking = false; });
+    }, { passive: true });
+  })();
+</script>
+</body>
+</html>
