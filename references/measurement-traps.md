@@ -152,6 +152,46 @@ considered valid. A test will report a value the file does not contain.
 **Do this:** if a measurement disagrees with the source you are reading, clear the cache
 before you believe either of them.
 
+## 11. A guard that hides a symptom will freeze the feature
+
+Parallax travel in the example page was clamped at `240px` — a third of one screen — to stop what
+the code comment called a **depth inversion**: near hills climbing over far ones.
+
+There was no inversion. A near hill sweeping up over a far one is what parallax *is*; scrolling
+down moves the camera down, and near things climb the frame faster. Nothing ever changed depth.
+
+The real defect was that the sky was a `<rect>` inside a layer that sinks at `0.70 x scroll`, and a
+rect **has a top edge**. The clamp hid the edge. It also froze the parallax for 70% of the hero,
+which is what the user eventually reported: *"things are moving but not moving much."*
+
+The tell was there to be measured. The sky's only protection was the overhang `slice` happens to
+leave above the hero — `artHeight - heroHeight`:
+
+```
+1800x513   overhang 474px   sky survives
+1440x813   overhang  14px   SKY IS CUT after 20px of scroll
+```
+
+**Do this:** when a fix is a `clamp`, a `min()`, a `max()` or a delay, name what it stops you from
+seeing. Then measure the guard's margin across several inputs. **A margin that varies 30x is not a
+guard — it is an accident you are relying on.** And prefer removing the edge to bounding the travel:
+a backdrop with no edge cannot be uncovered, at any viewport, at any speed.
+
+## 12. Tracing a frame gives you geometry, not composition
+
+The traced terrain filled 93% of its canvas. That was *faithful* — the source's own rest frame has
+about 7% literal sky, and its upper hills only read as sky because they are pale-yellow on
+pale-yellow. It was also unusable: there was nowhere for a sky to be.
+
+And it could not be fixed by padding. A bottom-anchored, width-scaled artwork shows exactly
+`heroH x canvasW / heroW` canvas rows. With a 745-row terrain in a 790-row window you get 45 rows of
+sky no matter how much empty canvas you add above, below, or around it. **The land has to shrink.**
+
+**Do this:** keep the two apart in your head and in your write-up. The ridge *shapes* and the layer
+*factors* are measurements. Where the horizon sits, how tall the trees are, how much sky there is —
+those are yours, and an affine remap changes them without touching a single measured number. Say
+which is which, or a reader will assume the whole frame was recovered.
+
 ---
 
 ## The one-line version

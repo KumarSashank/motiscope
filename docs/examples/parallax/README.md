@@ -87,19 +87,34 @@ them. Pinning the sky at `0.00` while the far hills climbed at `0.30` was the fi
 and it was wrong: the hills ate the sky band and left a hard edge across the top of the hero.
 One backdrop plane is both more coherent and what the pixels actually support.
 
-### Parallax travel is clamped
+### The sky is a backdrop, not a layer
 
-The traced ridges sit close together — the tightest adjacent pair is only 28px apart. At full
-travel the near hills climb over the far ones and the **depth order inverts**: past ~326px of
-scroll the deep hills overtake the far hills and reach the top of the hero.
+We once clamped parallax travel to 240px and blamed a **depth inversion**: near hills climbing
+over far ones. That diagnosis was wrong. A near hill sweeping up over a far one is what parallax
+*is* — scrolling down moves the camera down, and near things climb the frame faster. Nothing ever
+changed depth.
+
+What actually broke: the sky was a `<rect>` inside a layer that sinks at `0.70 × scroll`, and a
+rect **has a top edge**. Its only protection was the overhang that `slice` happens to leave above
+the hero — measured at 474px on one viewport and **14px** on another, where the sky is cut after
+20px of scroll. The clamp hid the edge by freezing the parallax after a third of one screen.
 
 ```css
-.ly { transform: translate3d(0, calc(min(var(--s), var(--pmax)) * (1 - var(--f))), 0); }
+.hero { background: linear-gradient(180deg, ...); }   /* no edge, so nothing to uncover */
+.ly   { transform: translate3d(0, calc(min(var(--s), var(--pmax)) * (1 - var(--f))), 0); }
 ```
 
-Below `--pmax` (240px) the factors are **exactly** the measured ones. Above it the hero exits
-rigidly, with the layer order preserved. This is a property of the artwork's composition, not
-of the measurement: the source's hero scrolls *into* view, so its crossing region is off-screen.
+`--pmax` is now `900px` — the hero's own height — and exists only to bound the transform after the
+hero has left. The factors resolve **exactly** at every offset; ask `DOMMatrix`, not a screenshot.
+
+### The composition is ours; the ridges are the source's
+
+The traced land fills 93% of the canvas — and so does the source's. Its upper hills only *read* as
+sky because they are pale-yellow on pale-yellow. A bottom-anchored, width-scaled artwork shows
+exactly `heroH × 1400/heroW` canvas rows, so a 745-row terrain leaves nowhere for a sky to be, at
+any viewport. Padding the canvas cannot invent one; the land has to shrink. `cy()` compresses it
+toward the horizon by `LAND_K = 0.78`. The map is affine, so ridge shapes and layer factors are
+untouched. Sky: 7% of the canvas → 28%.
 
 ### The viaduct
 
@@ -201,7 +216,8 @@ depth order are the source's.
 ## What's still approximate
 
 - **The sky and far hills share a chosen factor** (`0.30`), as above — they were never separable.
-- **Parallax travel is clamped** at 240px of scroll to stop the traced ridges from inverting.
+- **The vertical composition is a design choice**: the traced land is compressed ×0.78 toward the
+  horizon so there is a sky. Ridge shapes and layer factors are untouched.
 - **Binding the train to scroll is a departure from the source**, where it runs on a clock.
   The 3.58 ratio it uses is measured; the binding is a choice.
 - **The ground line is derived**, not traced.

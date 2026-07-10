@@ -68,6 +68,8 @@ Always include a `prefers-reduced-motion: reduce` guard that drops the element(s
 
 **If the spec is `scroll_driven`:** bind the motion to scroll position, not to a timer. A layer with parallax factor `f` translates by `scroll x (1 - f)`; at `f = 0` it is pinned, at `f = 1` it rides the page. A time-driven object inside a scroll-driven scene (a train, a marquee) can be bound to scroll too — derive its constant from the recorded *ratio*, and say in your summary that the binding is a design decision rather than something the source did.
 
+**A backdrop must not have an edge.** Anything that reads as *behind everything* — a sky, a page gradient, a vignette — belongs to the container, not to a moving layer. A gradient drawn as a `<rect>` inside a parallax layer has a top edge, and any travel large enough slides that edge into frame. If you are clamping travel to keep a background from being uncovered, you are bounding the symptom; remove the edge instead. And beware composition you never chose: tracing a frame recovers ridge *shapes* and layer *speeds*, never where the horizon should sit. That part is yours — say so.
+
 **Verify in the substrate, not in your own render.** Re-measuring pixels of your own output is a second chance to be wrong the same way. Ask the runtime what it actually resolved — `getBoundingClientRect`, `getComputedStyle`, `getBBox`, `DOMMatrix` — and check the numbers against the spec. A layer's on-screen speed relative to the page *is* its parallax factor; that is a proof, a screenshot is not.
 
 ## Step 4 — asset check (consent flow)

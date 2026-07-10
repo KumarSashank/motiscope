@@ -32,9 +32,13 @@ MEASURED from parallax.mov (1400x804, 60fps, 2.25s):
       raw trace, not its median.
 
 CHOSEN, not measured: the sky and the far hills share one factor (0.30), inside the
-unrecoverable range -- they are a single pale mask and were never separable. Parallax travel is clamped to --pmax (240px): the traced ridges sit
-close together, so at full travel the near hills climb over the far ones and invert the depth
-order. Within the clamp the factors are exactly the measured ones. Binding the train to scroll is a deliberate departure from the source
+unrecoverable range -- they are a single pale mask and were never separable. The sky itself is
+not a layer at all: it is the hero's CSS background. A featureless gradient has no measurable
+parallax, and -- the part that actually bit us -- a sky drawn as a <rect> inside a sinking layer
+has a TOP EDGE that eventually slides into frame. A backdrop with no edge cannot be uncovered.
+COMPOSITION, not measured: the traced land fills 93% of the canvas (so does the source's), which
+leaves no room for a sky at any viewport. cy() compresses the land toward the horizon by 0.78.
+It is affine, so ridge shapes and layer factors survive untouched. Binding the train to scroll is a deliberate departure from the source
 (there it runs on a clock); the 3.58 ratio is measured, the binding is a design decision.
 The ground line is derived from the purple ridge -- in the source it is almost entirely
 hidden behind foreground trees. Palette: a warm sunset became a cool dawn.
@@ -61,6 +65,28 @@ TRAIN_ROOF, TRAIN_WIN, TRAIN_BODY = "#FFFFFF", "#12253A", "#FBE3B8"
 # meant the hills ate the sky band and left a hard edge. They are one backdrop plane.
 F_SKY, F_GOLD, F_ORNG, F_CRIM, F_NAVY, F_INK = 0.30, 0.30, 0.72, 0.86, 0.97, 1.00
 
+# --- composition ------------------------------------------------------------------
+# The traced terrain fills 93% of the canvas. That is faithful: the source's own rest
+# frame has ~7% literal sky, and its upper hills only READ as sky because they are
+# pale-yellow on pale-yellow. A bottom-anchored, width-scaled artwork shows exactly
+# `heroH * 1400/heroW` canvas rows, so with a 745-row terrain there is nowhere for a
+# sky to go -- no amount of canvas padding creates one. The land has to shrink.
+#
+# cy() is affine, so the ridge SHAPES and the measured layer FACTORS are untouched;
+# only the vertical composition moves. This is a design decision, not a measurement.
+LAND_K = 0.78               # terrain height x this, about the canvas bottom
+PROP_K = 0.82               # trees/bushes/tulips shrink with the vista, keeping aspect
+SUN_CY = 168                # the sun now has sky to sit in
+
+
+LAND_ROWS = H - (H - min(R["gold"])) * LAND_K   # 581: the terrain's own height, in canvas rows
+LAND_ROWS = H - LAND_ROWS                       # rows the land occupies, measured from the bottom
+
+
+def cy(y):
+    """Map a traced y onto the recomposed canvas: y' = H - (H - y) * LAND_K."""
+    return H - (H - y) * LAND_K
+
 DECK_Y, DECK_T = 498, 36
 PIER_PITCH, ARCH_W = 194, 180
 BRIDGE_X0, BRIDGE_X1 = 116, 1300
@@ -73,9 +99,9 @@ TRAIN_X0 = -60              # resting offset, so the train sits on the bridge at
 
 def ridge_path(name, step=8):
     ys = R[name]
-    pts = [(x, ys[x]) for x in range(0, len(ys), step)]
+    pts = [(x, cy(ys[x])) for x in range(0, len(ys), step)]
     if pts[-1][0] != len(ys) - 1:
-        pts.append((len(ys) - 1, ys[-1]))
+        pts.append((len(ys) - 1, cy(ys[-1])))
     d = f"M0,{H} L0,{pts[0][1]:.1f} " + " ".join(f"L{x},{y:.1f}" for x, y in pts[1:])
     return d + f" L{W},{pts[-1][1]:.1f} L{W},{H} Z"
 
@@ -92,28 +118,33 @@ def hill(name, gid, factor, a, b, extra=""):
             f'<path d="{ridge_path(name)}" fill="url(#{gid})"/>{extra}</svg>')
 
 
+DECK_C = cy(DECK_Y)              # the deck, reseated on the recomposed terrain
+DECK_TC = DECK_T * LAND_K        # deck slab and arch rise compress with the land
+RAIL_TC = 7 * LAND_K
+
+
 def bridge():
-    base = DECK_Y + 165
-    parts = [f'<rect x="{BRIDGE_X0}" y="{DECK_Y}" width="{BRIDGE_X1-BRIDGE_X0}" '
-             f'height="{base-DECK_Y}" fill="{INK}"/>']
+    base = DECK_C + 165 * LAND_K
+    parts = [f'<rect x="{BRIDGE_X0}" y="{DECK_C:.1f}" width="{BRIDGE_X1-BRIDGE_X0}" '
+             f'height="{base-DECK_C:.1f}" fill="{INK}"/>']
     x = BRIDGE_X0 + 14
     while x + ARCH_W <= BRIDGE_X1 - 14:
         r = ARCH_W / 2
-        top = DECK_Y + DECK_T + 30
-        parts.append(f'<path d="M{x},{base} L{x},{top} A{r},{r} 0 0 1 {x+ARCH_W},{top} '
-                     f'L{x+ARCH_W},{base} Z" fill="url(#gcrim)"/>')
+        top = DECK_C + DECK_TC + 30 * LAND_K
+        parts.append(f'<path d="M{x},{base:.1f} L{x},{top:.1f} A{r},{r} 0 0 1 {x+ARCH_W},{top:.1f} '
+                     f'L{x+ARCH_W},{base:.1f} Z" fill="url(#gcrim)"/>')
         x += PIER_PITCH
-    parts.append(f'<rect x="{BRIDGE_X0-16}" y="{DECK_Y}" width="{BRIDGE_X1-BRIDGE_X0+32}" '
-                 f'height="{DECK_T}" fill="{INK}"/>')
-    parts.append(f'<rect x="{BRIDGE_X0-16}" y="{DECK_Y-7}" width="{BRIDGE_X1-BRIDGE_X0+32}" '
-                 f'height="7" fill="{RAIL}"/>')
+    parts.append(f'<rect x="{BRIDGE_X0-16}" y="{DECK_C:.1f}" width="{BRIDGE_X1-BRIDGE_X0+32}" '
+                 f'height="{DECK_TC:.1f}" fill="{INK}"/>')
+    parts.append(f'<rect x="{BRIDGE_X0-16}" y="{DECK_C-RAIL_TC:.1f}" width="{BRIDGE_X1-BRIDGE_X0+32}" '
+                 f'height="{RAIL_TC:.1f}" fill="{RAIL}"/>')
     return "".join(parts)
 
 
 def car(x, w, nose=False):
     """A rounded car: white shell, navy window band with gold dividers, cream lower body."""
-    t = DECK_Y - TRAIN_H - 7
-    b = DECK_Y - 7
+    t = DECK_C - TRAIN_H - RAIL_TC
+    b = DECK_C - RAIL_TC
     r = 16
     if nose:
         # travelling left -> right, so the swept nose is the leading (right) end
@@ -167,32 +198,35 @@ def tulip(x, y, s, col):
 
 def gy(x):
     i = max(0, min(len(R["ink"]) - 1, int(x)))
-    return R["ink"][i]
+    return cy(R["ink"][i])
 
 
 fore = "".join([
-    "".join(bush(x, gy(x) + 26, r) for x, r in
+    "".join(bush(x, gy(x) + 26 * LAND_K, r * PROP_K) for x, r in
             [(300, 46), (470, 36), (660, 52), (830, 40), (1000, 48), (1150, 34)]),
-    "".join(leaf_tree(x, gy(x) + 40, h) for x, h in
+    "".join(leaf_tree(x, gy(x) + 40 * LAND_K, h * PROP_K) for x, h in
             [(44, 420), (140, 310), (232, 226), (1196, 236), (1290, 340), (1372, 448)]),
-    fir(1108, gy(1108) + 36, 300), fir(1058, gy(1058) + 36, 214), fir(322, gy(322) + 36, 208),
-    "".join(tulip(x, max(gy(x) + 34, 726), 17, ACC2 if i % 2 else ACC1)
+    fir(1108, gy(1108) + 36 * LAND_K, 300 * PROP_K),
+    fir(1058, gy(1058) + 36 * LAND_K, 214 * PROP_K),
+    fir(322, gy(322) + 36 * LAND_K, 208 * PROP_K),
+    "".join(tulip(x, max(gy(x) + 34 * LAND_K, cy(726)), 17 * PROP_K, ACC2 if i % 2 else ACC1)
             for i, x in enumerate(range(80, W - 40, 96))),
 ])
 
+# The sky gradient is a CSS background on .hero, not a layer. A featureless gradient has
+# no measurable parallax -- and, more to the point, a sky that is a rect inside a sinking
+# layer has a TOP EDGE. That edge is what used to slide into frame and "cut the sky". A
+# backdrop with no edge cannot be cut, at any viewport, at any travel.
 sky = (f'<svg class="ly" style="--f:{F_SKY}" viewBox="0 0 {W} {H}" '
        f'preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs>'
        f'<radialGradient id="glow"><stop offset="0" stop-color="{SUN}" stop-opacity=".95"/>'
-       f'<stop offset="1" stop-color="{SUN}" stop-opacity="0"/></radialGradient>'
-       f'<linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1">'
-       f'<stop offset="0" stop-color="{SKY_TOP}"/><stop offset=".5" stop-color="{SKY_MID}"/>'
-       f'<stop offset="1" stop-color="{SKY_LOW}"/></linearGradient></defs>'
-       f'<rect width="{W}" height="{H}" fill="url(#gsky)"/>'
-       f'<circle cx="700" cy="240" r="330" fill="url(#glow)"/>'
-       f'<circle cx="700" cy="240" r="118" fill="{SUN}"/></svg>')
+       f'<stop offset="1" stop-color="{SUN}" stop-opacity="0"/></radialGradient></defs>'
+       f'<circle cx="700" cy="{SUN_CY}" r="330" fill="url(#glow)"/>'
+       f'<circle cx="700" cy="{SUN_CY}" r="118" fill="{SUN}"/></svg>')
 
 gold = hill("gold", "ggold", F_GOLD, GOLD_A, GOLD_B,
-            "".join(fir(x, R["gold"][x] + 9, 24 + (x % 29) * 0.5, GOLD_B) for x in range(24, W, 57)))
+            "".join(fir(x, cy(R["gold"][x]) + 9 * LAND_K, (24 + (x % 29) * 0.5) * PROP_K, GOLD_B)
+                    for x in range(24, W, 57)))
 orng = hill("orange", "gorng", F_ORNG, ORNG_A, ORNG_B)
 crim = (f'<svg class="ly" style="--f:{F_CRIM}" viewBox="0 0 {W} {H}" '
         f'preserveAspectRatio="xMidYMax slice" aria-hidden="true">'
@@ -238,17 +272,32 @@ HTML = f'''<!doctype html>
 <link rel="canonical" href="https://kumarsashank.github.io/motiscope/examples/parallax/recreation.html">
 <style>
   :root {{ --ink:{INK}; --paper:#EAF7F1; --acc1:{ACC1}; --s:0px;
-           /* Parallax travel is clamped. With the measured factors the near ridges climb
-              faster than the far ones, and past ~326px of scroll the deep hills overtake
-              the far hills -- layers swap depth and the sky is sliced away. Below --pmax
-              the factors are exact; above it the hero exits rigidly. */
-           --pmax:240px; }}
+           /* Travel used to be clamped at 240px -- a third of one screen -- because the
+              sky was a rect inside a sinking layer, and its top edge slid into frame.
+              The sky is now the hero's own background, so nothing can uncover it. The
+              clamp only exists to bound the transform once the hero has left. */
+           --pmax:900px; }}
   * {{ box-sizing:border-box; margin:0; }}
   html {{ scroll-behavior:smooth; }}
   body {{ background:var(--ink); color:var(--paper); overflow-x:hidden;
          font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }}
 
-  .hero {{ position:relative; height:100vh; min-height:560px; overflow:hidden; }}
+  /* The sky is the backdrop, not a layer: it spans the hero, has no top edge, and never
+     moves. The hills sink across it. This is what a sky at infinity actually does. */
+  /* Sky as a guarantee, not an accident. The art is bottom-anchored and width-scaled, so the
+     hero shows exactly heroH*1400/heroW canvas rows and the terrain is {LAND_ROWS:.0f} of them. Sky
+     therefore exists only while heroH > {LAND_ROWS/W:.3f}*heroW -- true on any display 16:9 or taller,
+     false on a short wide window, which is how the old build showed no sky at all there.
+     Sizing the hero FROM the terrain makes the band deterministic: >= 96px wherever the
+     130svh cap does not bind. Past that (a deliberately squat window) the art overscans
+     and the sky is gone -- `slice` is cover, and cover must crop one axis.
+     The plain 100vh comes first: a browser that does not know `svh` drops the whole clamp,
+     and a hero with no height collapses to nothing. */
+  .hero {{ position:relative; overflow:hidden; min-height:560px;
+          height:100vh;
+          height:clamp(100svh, calc(100vw * {LAND_ROWS/W:.4f} + 96px), 130svh);
+          background:linear-gradient(180deg, #F4FCF8 0%, {SKY_TOP} 16%,
+                                     {SKY_MID} 52%, {SKY_LOW} 100%); }}
   .ly {{ position:absolute; inset:0; width:100%; height:100%; display:block;
          transform:translate3d(0, calc(min(var(--s), var(--pmax)) * (1 - var(--f))), 0);
          will-change:transform; }}

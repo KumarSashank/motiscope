@@ -205,14 +205,29 @@
       a design choice inside the uncertainty. They are the same pale mask, and the measurement
       could never separate them.</p>
     <div class="callout">
-      <b>A bug this caused, and the fix.</b> The first version pinned the sky at <code>0.00</code>
-      while the far hills climbed at <code>0.30</code> — so the hills ate the sky band and left a
-      hard edge across the top. Worse, the traced ridges sit close together (the tightest adjacent
-      pair is 28&nbsp;px apart), so at full travel the near hills <b>climb over</b> the far ones and
-      the depth order inverts past ~326&nbsp;px of scroll. Parallax travel is now clamped:
-      <code>min(var(--s), 240px)</code>. Below the clamp the factors are exactly the measured ones;
-      above it the hero exits rigidly with the order preserved. That is a property of the artwork&rsquo;s
-      composition — the source&rsquo;s hero scrolls <em>into</em> view, so its crossing region is off-screen.
+      <b>A bug this caused, and what it actually was.</b> The first version pinned the sky at
+      <code>0.00</code> while the far hills climbed at <code>0.30</code>, so the hills ate the sky band
+      and left a hard edge. We unified them at <code>0.30</code>, clamped travel to <code>240px</code>,
+      and called the leftover artifact a <b>depth inversion</b>. It was not. A near hill sweeping up over
+      a far one is precisely what parallax <em>is</em> — scrolling down moves the camera down, and near
+      things climb the frame faster. Nothing ever changed depth. What actually broke was that the sky was
+      a <code>&lt;rect&gt;</code> inside a layer that sinks at <code>0.70&nbsp;&times;&nbsp;scroll</code>,
+      and a rect <b>has a top edge</b>. Its only protection was accidental overhang: 474&nbsp;px on one
+      viewport, <b>14&nbsp;px</b> on another — cut after 20&nbsp;px of scroll. The clamp hid that edge by
+      freezing the parallax after a third of one screen. The sky is now the hero&rsquo;s own
+      <code>background</code>: no edge, nothing to uncover, travel bounded only by the hero. Every factor
+      resolves exactly at every offset — we asked <code>DOMMatrix</code>, not a screenshot.
+    </div>
+
+    <div class="callout">
+      <b>The ridges are the source&rsquo;s; the composition is ours.</b> The traced land fills 93% of the
+      canvas — and so does the source&rsquo;s. Its upper hills only <em>read</em> as sky because they are
+      pale-yellow on pale-yellow. A bottom-anchored, width-scaled artwork shows exactly
+      <code>heroH&nbsp;&times;&nbsp;1400/heroW</code> canvas rows, so a 745-row terrain leaves nowhere for a
+      sky to be, at any viewport; padding the canvas cannot invent one. So the land is compressed toward
+      the horizon by an affine map, <code>LAND_K&nbsp;=&nbsp;0.78</code>, which leaves the ridge
+      <em>shapes</em> and the layer <em>factors</em> untouched. Sky went from 7% of the canvas to 28%.
+      This is a design decision, not a measurement.
     </div>
 
     <h3>The viaduct</h3>
@@ -325,7 +340,12 @@ set_f=1.00  implied_f=1.000</code></pre>
     <p class="sub">honest examples teach more than perfect ones</p>
     <ul>
       <li><b>The sky and far hills share a chosen factor</b>, not a measured one — they were never separable.</li>
-      <li><b>Parallax travel is clamped</b> at 240px of scroll, because the traced ridges would otherwise invert.</li>
+      <li><b>The vertical composition is ours.</b> The traced land fills 93% of the canvas, so it is
+        compressed toward the horizon (<code>&times;0.78</code>) to make room for sky. Ridge shapes and
+        layer factors are untouched.</li>
+      <li><b>We first called the sky bug a depth inversion.</b> It was a rectangle with a top edge inside a
+        sinking layer, and the clamp we added to hide it froze the parallax after 240&nbsp;px. The sky is now
+        the hero&rsquo;s background and travel runs the full hero.</li>
       <li><b>Binding the train to scroll is a departure from the source</b>, where it runs on a clock.
         The 3.58 ratio is measured; the binding is a decision.</li>
       <li><b>The ground line is derived</b> from the purple ridge, not traced — it is hidden behind trees.</li>
